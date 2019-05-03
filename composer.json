@@ -30,6 +30,7 @@
 		"stoic/io": "dev-master"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "^7"
+		"phpunit/phpunit": "^7",
+		"jimbojsb/pseudo": "0.4"
 	}
 }
