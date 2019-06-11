@@ -185,6 +185,12 @@
 		 */
 		protected $db = null;
 		/**
+		 * Internal storage for guessed driver type.
+		 *
+		 * @var PdoDrivers
+		 */
+		protected $dbDriver = null;
+		/**
 		 * Optional collection of BaseDbField
 		 * objects representing object
 		 * properties.
@@ -373,10 +379,7 @@
 		final protected function __initialize() {
 			static::persistClassProperties();
 
-			if ($this->db instanceof PdoHelper) {
-				
-			}
-
+			$this->dbDriver = ($this->db instanceof PdoHelper) ? $this->db->getDriver() : new PdoDrivers(PdoDrivers::PDO_UNKNOWN);
 			$this->__setupModel();
 
 			return;
@@ -414,6 +417,12 @@
 			return;
 		}
 
+		/**
+		 * Optional method to initialize a model after the constructor
+		 * has finished.
+		 *
+		 * @return void
+		 */
 		protected function __setupModel() {
 			return;
 		}
@@ -455,7 +464,7 @@
 			}
 
 			try {
-				$sql = "INSERT INTO `{$this->dbTable}` (`" . implode('`,`', array_keys($insertColumns)) . "`) VALUES (" . implode(', ', array_values($insertColumns)) . ")";
+				$sql = "INSERT INTO {$this->dbTable} (" . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ',' . $this->getDbColumnPrefix(), array_keys($insertColumns)) . $this->getDbColumnSuffix() . ") VALUES (" . implode(', ', array_values($insertColumns)) . ")";
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
@@ -557,7 +566,7 @@
 			foreach ($this->dbFields as $property => $field) {
 				if ($field->isKey) {
 					$primaries[] = $this->getPropertyDbValue($property, $field);
-					$primaryStrings[] = "`{$field->column}` = :{$property}";
+					$primaryStrings[] = "{$this->prepColumn($field->column)} = :{$property}";
 				}
 			}
 
@@ -569,7 +578,7 @@
 			}
 
 			try {
-				$sql = "DELETE FROM `{$this->dbTable}` WHERE " . implode(' AND ', array_values($primaryStrings));
+				$sql = "DELETE FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
@@ -620,11 +629,11 @@
 				}
 
 				if ($field->isKey) {
-					$primaryStrings[] = "`{$field->column}` = :{$property}";
+					$primaryStrings[] = "{$this->prepColumn($field->column)} = :{$property}";
 				}
 
 				if ($field->shouldUpdate) {
-					$updateColumns[] = "`{$field->column}` = :{$property}";
+					$updateColumns[] = "{$this->prepColumn($field->column)} = :{$property}";
 				}
 
 				$selectColumns[] = $field->column;
@@ -632,15 +641,15 @@
 
 			switch ($queryType->getValue()) {
 				case BaseDbQueryTypes::DELETE:
-					$ret = "DELETE FROM `{$this->dbTable}` WHERE " . implode(' AND ', array_values($primaryStrings));
+					$ret = "DELETE FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
 
 					break;
 				case BaseDbQueryTypes::INSERT:
-					$ret = "INSERT INTO `{$this->dbTable}` (`" . implode('`, `', array_keys($insertColumns)) . "`) VALUES (" . implode(', ', array_values($insertColumns)) . ")";
+					$ret = "INSERT INTO {$this->dbTable} (" . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_keys($insertColumns)) . $this->getDbColumnSuffix() . ") VALUES (" . implode(', ', array_values($insertColumns)) . ")";
 
 					break;
 				case BaseDbQueryTypes::SELECT:
-					$ret = "SELECT `" . implode('`, `', array_values($selectColumns)) . "` FROM `{$this->dbTable}`";
+					$ret = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($selectColumns)) . $this->getDbColumnSuffix() . " FROM {$this->dbTable}";
 
 					if ($includeSelectPrimaries) {
 						$ret .= " WHERE " . implode(' AND ', array_values($primaryStrings));
@@ -648,7 +657,7 @@
 
 					break;
 				case BaseDbQueryTypes::UPDATE:
-					$ret = "UPDATE `{$this->dbTable}` SET " . implode(', ', array_values($updateColumns)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
+					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
 
 					break;
 			}
@@ -666,6 +675,47 @@
 		}
 
 		/**
+		 * Retrieves the common column prefix character for the
+		 * database driver, if available.
+		 *
+		 * @codeCoverageIgnore
+		 * @return string
+		 */
+		protected function getDbColumnPrefix() {
+			$ret = '';
+
+			if (!$this->dbDriver->is(PdoDrivers::PDO_UNKNOWN)) {
+				switch ($this->dbDriver->getValue()) {
+					case PdoDrivers::PDO_MYSQL:
+						$ret = '`';
+
+						break;
+					case PdoDrivers::PDO_MSSQL:
+					case PdoDrivers::PDO_SQLSRV:
+					case PdoDrivers::PDO_SYBASE:
+						$ret = '[';
+
+						break;
+					case PdoDrivers::PDO_4D:
+					case PdoDrivers::PDO_CUBRID:
+					case PdoDrivers::PDO_FIREBIRD:
+					case PdoDrivers::PDO_FREETDS:
+					case PdoDrivers::PDO_IBM:
+					case PdoDrivers::PDO_INFORMIX:
+					case PdoDrivers::PDO_ODBC:
+					case PdoDrivers::PDO_ORACLE:
+					case PdoDrivers::PDO_PGSQL:
+					case PdoDrivers::PDO_SQLITE:
+					case PdoDrivers::PDO_UNKNOWN:
+					default:
+						break;
+				}
+			}
+
+			return $ret;
+		}
+
+		/**
 		 * Returns the currently set collection of database
 		 * columns/fields.
 		 *
@@ -673,6 +723,47 @@
 		 */
 		public function getDbColumns() {
 			return $this->dbFields;
+		}
+
+		/**
+		 * Retrieves the common column suffix character for the
+		 * database driver, if available.
+		 *
+		 * @codeCoverageIgnore
+		 * @return string
+		 */
+		protected function getDbColumnSuffix() {
+			$ret = '';
+
+			if (!$this->dbDriver->is(PdoDrivers::PDO_UNKNOWN)) {
+				switch ($this->dbDriver->getValue()) {
+					case PdoDrivers::PDO_MYSQL:
+						$ret = '`';
+
+						break;
+					case PdoDrivers::PDO_MSSQL:
+					case PdoDrivers::PDO_SQLSRV:
+					case PdoDrivers::PDO_SYBASE:
+						$ret = ']';
+
+						break;
+					case PdoDrivers::PDO_4D:
+					case PdoDrivers::PDO_CUBRID:
+					case PdoDrivers::PDO_FIREBIRD:
+					case PdoDrivers::PDO_FREETDS:
+					case PdoDrivers::PDO_IBM:
+					case PdoDrivers::PDO_INFORMIX:
+					case PdoDrivers::PDO_ODBC:
+					case PdoDrivers::PDO_ORACLE:
+					case PdoDrivers::PDO_PGSQL:
+					case PdoDrivers::PDO_SQLITE:
+					case PdoDrivers::PDO_UNKNOWN:
+					default:
+						break;
+				}
+			}
+
+			return $ret;
 		}
 
 		/**
@@ -736,6 +827,17 @@
 		}
 
 		/**
+		 * Wraps the column name with the appropriate characters,
+		 * if available.
+		 *
+		 * @param string $column Column to wrap, if possible.
+		 * @return string
+		 */
+		protected function prepColumn(string $column) : string {
+			return $this->getDbColumnPrefix() . $column . $this->getDbColumnSuffix();
+		}
+
+		/**
 		 * Attempts to read an object from the
 		 * database.
 		 *
@@ -756,7 +858,7 @@
 			foreach ($this->dbFields as $property => $field) {
 				if ($field->isKey) {
 					$primaries[] = $this->getPropertyDbValue($property, $field);
-					$primaryStrings[] = "`{$field->column}` = :{$property}";
+					$primaryStrings[] = "{$this->prepColumn($field->column)} = :{$property}";
 				}
 
 				$columns[] = $field->column;
@@ -770,7 +872,7 @@
 			}
 
 			try {
-				$sql = "SELECT `" . implode('`, `', array_values($columns)) . "` FROM `{$this->dbTable}` WHERE " . implode(' AND ', array_values($primaryStrings));
+				$sql = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($columns)) . $this->getDbColumnSuffix() . " FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
@@ -914,12 +1016,12 @@
 
 				if ($field->isKey) {
 					$primaries[] = $this->getPropertyDbValue($property, $field);
-					$primaryStrings[] = "`{$field->column}` = {$colProp}";
+					$primaryStrings[] = "{$this->prepColumn($field->column)} = {$colProp}";
 				}
 
 				if ($field->shouldUpdate) {
 					$updateColumns[] = $this->getPropertyDbValue($property, $field);
-					$updateColumnStrings[] = "`{$field->column}` = {$colProp}";
+					$updateColumnStrings[] = "{$this->prepColumn($field->column)} = {$colProp}";
 				}
 			}
 
@@ -931,7 +1033,7 @@
 			}
 
 			try {
-				$sql = "UPDATE `{$this->dbTable}` SET " . implode(', ', array_values($updateColumnStrings)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
+				$sql = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumnStrings)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 

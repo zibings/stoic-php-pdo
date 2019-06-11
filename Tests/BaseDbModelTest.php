@@ -106,7 +106,7 @@
 			}
 
 			try {
-				$stmt = $this->db->prepare("SELECT COUNT(*) FROM `Role` WHERE `Name` = :name");
+				$stmt = $this->db->prepare("SELECT COUNT(*) FROM Role WHERE Name = :name");
 				$stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
 				$stmt->execute();
 
@@ -149,7 +149,7 @@
 			}
 
 			try {
-				$stmt = $this->db->prepare("SELECT COUNT(*) FROM `Role` WHERE `Name` = :name AND `ID` <> :id");
+				$stmt = $this->db->prepare("SELECT COUNT(*) FROM Role WHERE Name = :name AND ID <> :id");
 				$stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
 				$stmt->bindValue(':id', $this->id, \PDO::PARAM_INT);
 				$stmt->execute();
@@ -219,8 +219,8 @@
 		public function test_Instantiation() {
 		  $pdo = new Pdo();
 		  $role = new Role($pdo);
-		  $pdo->mock("SELECT `ID`, `Name` FROM `Role` WHERE `ID` = :id", new Result(), array(':id' => 1));
-		  $pdo->mock("SELECT COUNT(*) FROM `Role` WHERE `Name` = :name", array(array('COUNT(*)' => 1)), array(':name' => 'Testing'));
+		  $pdo->mock("SELECT ID, Name FROM Role WHERE ID = :id", new Result(), array(':id' => 1));
+		  $pdo->mock("SELECT COUNT(*) FROM Role WHERE Name = :name", array(array('COUNT(*)' => 1)), array(':name' => 'Testing'));
 
 		  self::assertTrue($role->read()->isBad());
 		  self::assertTrue($role->update()->isBad());
@@ -237,12 +237,12 @@
 		  $readResult = new Result(array(array('ID' => 1, 'Name' => 'Testing')), array(':id' => 1));
 		  $readResult->setAffectedRowCount(1);
 
-		  $pdo->mock("INSERT INTO `Role` (`Name`) VALUES (:name)", $insertResult, array(':name' => 'Testing'));
-		  $pdo->mock("UPDATE `Role` SET `Name` = :name WHERE `ID` = :id", new Result(), array(':name' => 'Testarino', ':id' => 1));
-		  $pdo->mock("SELECT COUNT(*) FROM `Role` WHERE `Name` = :name", array(array('COUNT(*)' => 0)), array(':name' => 'Testing'));
-		  $pdo->mock("SELECT COUNT(*) FROM `Role` WHERE `Name` = :name AND `ID` <> :id", array(array('COUNT(*)' => 0)), array(':name' => 'Testarino', ':id' => 1));
-		  $pdo->mock("SELECT `ID`, `Name` FROM `Role` WHERE `ID` = :id", $readResult, array(':id' => 1));
-		  $pdo->mock("DELETE FROM `Role` WHERE `ID` = :id", new Result(), array(':id' => 1));
+		  $pdo->mock("INSERT INTO Role (Name) VALUES (:name)", $insertResult, array(':name' => 'Testing'));
+		  $pdo->mock("UPDATE Role SET Name = :name WHERE ID = :id", new Result(), array(':name' => 'Testarino', ':id' => 1));
+		  $pdo->mock("SELECT COUNT(*) FROM Role WHERE Name = :name", array(array('COUNT(*)' => 0)), array(':name' => 'Testing'));
+		  $pdo->mock("SELECT COUNT(*) FROM Role WHERE Name = :name AND ID <> :id", array(array('COUNT(*)' => 0)), array(':name' => 'Testarino', ':id' => 1));
+		  $pdo->mock("SELECT ID, Name FROM Role WHERE ID = :id", $readResult, array(':id' => 1));
+		  $pdo->mock("DELETE FROM Role WHERE ID = :id", new Result(), array(':id' => 1));
 
 		  $role = new Role($pdo);
 		  $role = new Role($pdo, new Logger());
@@ -262,7 +262,7 @@
 		  self::assertTrue($role->update()->isBad());
 
 		  $pdo = new Pdo();
-		  $pdo->mock("SELECT COUNT(*) FROM `Role` WHERE `Name` = :name AND `ID` <> :id", array(array('COUNT(*)' => 1)), array(':name' => 'Testing', ':id' => 1));
+		  $pdo->mock("SELECT COUNT(*) FROM Role WHERE Name = :name AND ID <> :id", array(array('COUNT(*)' => 1)), array(':name' => 'Testing', ':id' => 1));
 
 		  $role = new Role($pdo);
 		  $role->id = 1;
@@ -380,7 +380,7 @@
 			$pdo = new Pdo();
 			$result = new Result(array(array('ID' => 1, 'Name' => 'Testing', 'Date' => '2014-10-27 01:20:30', 'Active' => 1, 'IntEnum' => 1, 'StringEnum' => 'VALUE_TWO')), array(':id' => 1));
 			$result->setAffectedRowCount(1);
-			$pdo->mock("SELECT `ID`, `Name`, `Date`, `Active`, `IntEnum`, `StringEnum` FROM `Test` WHERE `ID` = :id", $result, array(':id' => 1));
+			$pdo->mock("SELECT ID, Name, Date, Active, IntEnum, StringEnum FROM Test WHERE ID = :id", $result, array(':id' => 1));
 			$complete = new CompleteDbClass($pdo);
 			$complete->id = 1;
 
@@ -395,7 +395,7 @@
 			$pdo = new Pdo();
 			$insertResult = new Result();
 			$insertResult->setInsertId(1);
-			$pdo->mock("INSERT INTO `Test` (`Name`, `Date`, `Active`, `IntEnum`, `StringEnum`) VALUES (:name, :date, :active, :intEnum, :stringEnum)", $insertResult, array(':name' => 'Testing', ':date' => null, ':active' => 0, ':intEnum' => 2, ':stringEnum' => 'VALUE_ONE'));
+			$pdo->mock("INSERT INTO Test (Name, Date, Active, IntEnum, StringEnum) VALUES (:name, :date, :active, :intEnum, :stringEnum)", $insertResult, array(':name' => 'Testing', ':date' => null, ':active' => 0, ':intEnum' => 2, ':stringEnum' => 'VALUE_ONE'));
 			$complete = new CompleteDbClass($pdo);
 			$complete->id = 1;
 			$complete->name = 'Testing';
@@ -409,7 +409,7 @@
 			$pdo = new Pdo();
 			$insertResult = new Result();
 			$insertResult->setInsertId(1);
-			$pdo->mock("INSERT INTO `Test` (`Name`, `Date`, `Active`, `IntEnum`, `StringEnum`) VALUES (:name, :date, :active, :intEnum, :stringEnum)", $insertResult, array(':name' => 'Testing', ':date' => '2014-10-27 01:20:30', ':active' => 1, ':intEnum' => 2, ':stringEnum' => 'VALUE_ONE'));
+			$pdo->mock("INSERT INTO Test (Name, Date, Active, IntEnum, StringEnum) VALUES (:name, :date, :active, :intEnum, :stringEnum)", $insertResult, array(':name' => 'Testing', ':date' => '2014-10-27 01:20:30', ':active' => 1, ':intEnum' => 2, ':stringEnum' => 'VALUE_ONE'));
 			$complete = new CompleteDbClass($pdo);
 			$complete->id = 1;
 			$complete->name = 'Testing';
@@ -448,14 +448,14 @@
 		public function test_BaseDbModel_QueryGen() {
 			$role = new Role(new Pdo());
 
-			self::assertEquals('INSERT INTO `Role` (`Name`) VALUES (:name)', $role->generateClassQuery(BaseDbQueryTypes::INSERT));
-			self::assertEquals('INSERT INTO `Role` (`Name`) VALUES (:name)', $role->generateClassQuery(BaseDbQueryTypes::INSERT, false));
-			self::assertEquals('SELECT `ID`, `Name` FROM `Role` WHERE `ID` = :id', $role->generateClassQuery(BaseDbQueryTypes::SELECT));
-			self::assertEquals('SELECT `ID`, `Name` FROM `Role`', $role->generateClassQuery(BaseDbQueryTypes::SELECT, false));
-			self::assertEquals('UPDATE `Role` SET `Name` = :name WHERE `ID` = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE));
-			self::assertEquals('UPDATE `Role` SET `Name` = :name WHERE `ID` = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE, false));
-			self::assertEquals('DELETE FROM `Role` WHERE `ID` = :id', $role->generateClassQuery(BaseDbQueryTypes::DELETE));
-			self::assertEquals('DELETE FROM `Role` WHERE `ID` = :id', $role->generateClassQuery(BaseDbQueryTypes::DELETE, false));
+			self::assertEquals('INSERT INTO Role (Name) VALUES (:name)', $role->generateClassQuery(BaseDbQueryTypes::INSERT));
+			self::assertEquals('INSERT INTO Role (Name) VALUES (:name)', $role->generateClassQuery(BaseDbQueryTypes::INSERT, false));
+			self::assertEquals('SELECT ID, Name FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::SELECT));
+			self::assertEquals('SELECT ID, Name FROM Role', $role->generateClassQuery(BaseDbQueryTypes::SELECT, false));
+			self::assertEquals('UPDATE Role SET Name = :name WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE));
+			self::assertEquals('UPDATE Role SET Name = :name WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE, false));
+			self::assertEquals('DELETE FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::DELETE));
+			self::assertEquals('DELETE FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::DELETE, false));
 
 			return;
 		}
