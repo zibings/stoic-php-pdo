@@ -11,6 +11,7 @@
 	 * @version 1.0.0
 	 */
 	class PdoDrivers extends EnumBase {
+		const PDO_UNKNOWN  = 0;
 		const PDO_4D       = 1;
 		const PDO_CUBRID   = 2;
 		const PDO_FIREBIRD = 3;
@@ -236,9 +237,15 @@
 		 * Currently configured driver as specified by the
 		 * connection string.
 		 *
-		 * @var string
+		 * @var PdoDrivers
 		 */
 		protected $driver = null;
+		/**
+		 * Key for currently configured driver.
+		 *
+		 * @var string
+		 */
+		protected $driverKey = null;
 		/**
 		 * Collection of errors thrown by connection.
 		 *
@@ -396,7 +403,8 @@
 
 				foreach (array_keys(static::$driverLookup) as $prefix) {
 					if (strtolower(substr($dsn, 0, (strlen($prefix) + 1))) == strtolower($prefix) . ':') {
-						$this->driver = static::$driverLookup[$prefix][1];
+						$this->driverName = static::$driverLookup[$prefix][1];
+						$this->driver = new PdoDrivers(static::$driverLookup[$prefix][0]);
 
 						break;
 					}
@@ -498,11 +506,11 @@
 		 */
 		public function execStored(string $key) : int {
 			return $this->tryActiveCommand(function () use ($key) {
-				if (array_key_exists($key, static::$storedQueries[$this->driver]) === false || count(static::$storedQueries[$this->driver][$key]->arguments) > 0) {
+				if (array_key_exists($key, static::$storedQueries[$this->driverName]) === false || count(static::$storedQueries[$this->driverName][$key]->arguments) > 0) {
 					return 0;
 				}
 
-				return $this->exec(static::$storedQueries[$this->driver][$key]->query);
+				return $this->exec(static::$storedQueries[$this->driverName][$key]->query);
 			}, 0);
 		}
 
@@ -516,6 +524,15 @@
 			return $this->tryActiveCommand(function () use ($attribute) {
 				return parent::getAttribute($attribute);
 			}, null);
+		}
+
+		/**
+		 * Retrieves the currently configured driver enum.
+		 *
+		 * @return PdoDrivers
+		 */
+		public function getDriver() : PdoDrivers {
+			return $this->driver;
 		}
 
 		/**
@@ -624,21 +641,21 @@
 		 */
 		public function prepareStored(string $key, array $arguments = array(), array $options = null) {
 			return $this->tryActiveCommand(function () use ($key, $arguments, $options) {
-				if (array_key_exists($key, static::$storedQueries[$this->driver]) === false || count(static::$storedQueries[$this->driver][$key]->arguments) !== count($arguments)) {
+				if (array_key_exists($key, static::$storedQueries[$this->driverName]) === false || count(static::$storedQueries[$this->driverName][$key]->arguments) !== count($arguments)) {
 					return null;
 				}
 
 				$args = [];
 				$stmt = null;
-				$statement = static::$storedQueries[$this->driver][$key]->query;
+				$statement = static::$storedQueries[$this->driverName][$key]->query;
 
 				if (count($arguments) > 0) {
 					foreach ($arguments as $aKey => $value) {
-						if (array_key_exists($aKey, static::$storedQueries[$this->driver][$key]->arguments) === false) {
+						if (array_key_exists($aKey, static::$storedQueries[$this->driverName][$key]->arguments) === false) {
 							return null;
 						}
 
-						$args[] = ["{$aKey}", $value, static::$storedQueries[$this->driver][$key]->arguments[$aKey]->type];
+						$args[] = ["{$aKey}", $value, static::$storedQueries[$this->driverName][$key]->arguments[$aKey]->type];
 					}
 				}
 
@@ -702,11 +719,11 @@
 		 */
 		public function queryStored(string $key) {
 			return $this->tryActiveCommand(function () use ($key) {
-				if (array_key_exists($key, static::$storedQueries[$this->driver]) === false || count(static::$storedQueries[$this->driver][$key]->arguments) > 0) {
+				if (array_key_exists($key, static::$storedQueries[$this->driverName]) === false || count(static::$storedQueries[$this->driverName][$key]->arguments) > 0) {
 					return null;
 				}
 
-				return $this->query(static::$storedQueries[$this->driver][$key]->query);
+				return $this->query(static::$storedQueries[$this->driverName][$key]->query);
 			}, null);
 		}
 
