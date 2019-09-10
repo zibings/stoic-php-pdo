@@ -1,6 +1,6 @@
 <?php
 
-	namespace Stoic\Utilities;
+	namespace Stoic\Pdo;
 
 	use Stoic\Log\Logger;
 

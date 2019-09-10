@@ -3,7 +3,7 @@
 	namespace Stoic\Tests\Utilities;
 
 	use PHPUnit\Framework\TestCase;
-	use Stoic\Utilities\BaseDbClass;
+	use Stoic\Pdo\BaseDbClass;
 	use Pseudo\Pdo;
 	use Stoic\Log\Logger;
 

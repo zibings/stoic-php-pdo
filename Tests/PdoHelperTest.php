@@ -3,10 +3,10 @@
 	namespace Stoic\Tests\Utilities;
 
 	use PHPUnit\Framework\TestCase;
-	use Stoic\Utilities\PdoDrivers;
-	use Stoic\Utilities\PdoHelper;
-	use Stoic\Utilities\PdoQuery;
-	use Stoic\Utilities\PdoError;
+	use Stoic\Pdo\PdoDrivers;
+	use Stoic\Pdo\PdoHelper;
+	use Stoic\Pdo\PdoQuery;
+	use Stoic\Pdo\PdoError;
 
 	class PdoHelperTestable extends PdoHelper {
 		public static function getStoredQueries() {

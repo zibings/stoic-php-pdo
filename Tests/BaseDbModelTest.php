@@ -3,11 +3,11 @@
 	namespace Stoic\Tests\Utilities;
 
 	use PHPUnit\Framework\TestCase;
-	use Stoic\Utilities\BaseDbModel;
-	use Stoic\Utilities\BaseDbField;
-	use Stoic\Utilities\BaseDbTypes;
-	use Stoic\Utilities\BaseDbQueryTypes;
-	use Stoic\Utilities\ClassPropertyNotFoundException;
+	use Stoic\Pdo\BaseDbModel;
+	use Stoic\Pdo\BaseDbField;
+	use Stoic\Pdo\BaseDbTypes;
+	use Stoic\Pdo\BaseDbQueryTypes;
+	use Stoic\Pdo\ClassPropertyNotFoundException;
 	use Stoic\Utilities\EnumBase;
 	use Stoic\Utilities\ReturnHelper;
 	use Pseudo\Pdo;
