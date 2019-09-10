@@ -20,7 +20,7 @@
 	</testsuites>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true" processUncoveredFilesFromWhitelist="true">
-			<directory suffix=".php">./Utilities</directory>
+			<directory suffix=".php">./Pdo</directory>
 		</whitelist>
 	</filter>
 	<logging>

@@ -5,10 +5,10 @@
 	"homepage": "https://stoic-framework.com",
 	"autoload": {
 		"psr-0": {
-			"Stoic\\Utilities\\": "./Utilities"
+			"Stoic\\Pdo\\": "./Pdo"
 		},
 		"psr-4": {
-			"Stoic\\Utilities\\": "./Utilities"
+			"Stoic\\Pdo\\": "./Pdo"
 		},
 		"exclude-from-classmap": [
 			"/Tests/"
