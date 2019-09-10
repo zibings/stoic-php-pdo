@@ -5,6 +5,7 @@
 	use Stoic\Log\Logger;
 	use Stoic\Utilities\EnumBase;
 	use Stoic\Utilities\ReturnHelper;
+	use Stoic\Utilities\StringHelper;
 
 	/**
 	 * Exception thrown if a property isn't found during
