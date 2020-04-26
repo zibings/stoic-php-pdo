@@ -8,7 +8,7 @@
 	 * Enumerated PDO driver types, used for meta information.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class PdoDrivers extends EnumBase {
 		const PDO_UNKNOWN  = 0;
@@ -33,7 +33,7 @@
 	 * query.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class PdoStoredArgument {
 		/**
@@ -68,7 +68,7 @@
 	 * Meta information for a query intended for re-use.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class PdoStoredQuery {
 		/**
@@ -118,7 +118,7 @@
 	 * PdoHelper.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class PdoQuery implements \JsonSerializable {
 		/**
@@ -169,7 +169,7 @@
 	 * on queries run through the PdoHelper.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class PdoError implements \JsonSerializable {
 		/**
@@ -218,7 +218,7 @@
 	 * useful common operations and meta information.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class PdoHelper extends \PDO {
 		/**
@@ -359,7 +359,7 @@
 		 * @param array $queries Array of query information to store, in format ['key', 'query', [':argName' => 'argType']].
 		 * @return void
 		 */
-		public static function storeQueries($driver, array $queries = null) {
+		public static function storeQueries($driver, array $queries = null) : void {
 			if ($queries !== null) {
 				foreach (array_values($queries) as $query) {
 					static::storeQuery($driver, $query[0], $query[1], $query[2]);
@@ -467,7 +467,7 @@
 		 *
 		 * @return array
 		 */
-		public function errorInfo() : array {
+		public function errorInfo() {
 			return $this->tryActiveCommand(function () {
 				return parent::errorInfo();
 			}, []);
@@ -561,7 +561,7 @@
 		 *
 		 * @return integer
 		 */
-		public function getQueryCount() {
+		public function getQueryCount() : int {
 			return $this->queryCount;
 		}
 
@@ -592,7 +592,7 @@
 		 * @param string $seqname Name of the sequence object from which the ID should be returned.
 		 * @return mixed
 		 */
-		public function lastInsertId($seqname = NULL) {
+		public function lastInsertId($seqname = null) {
 			return $this->tryActiveCommand(function () use ($seqname) {
 				return parent::lastInsertId($seqname);
 			}, '');
@@ -605,7 +605,7 @@
 		 * @param array $options Holds one or more key=>value pairs to set attribute values for the PDOStatement object that this method returns.
 		 * @return \PDOStatement
 		 */
-		public function prepare($statement, $options = NULL) {
+		public function prepare($statement, $options = null) {
 			return $this->tryActiveCommand(function () use ($statement, $options) {
 				$ret = null;
 
@@ -639,7 +639,7 @@
 		 * @param array $options Holds one or more key=>value pairs to set attribute values for the PDOStatement object that this method returns.
 		 * @return \PDOStatement
 		 */
-		public function prepareStored(string $key, array $arguments = array(), array $options = null) {
+		public function prepareStored(string $key, array $arguments = [], array $options = null) {
 			return $this->tryActiveCommand(function () use ($key, $arguments, $options) {
 				if (array_key_exists($key, static::$storedQueries[$this->driverName]) === false || count(static::$storedQueries[$this->driverName][$key]->arguments) !== count($arguments)) {
 					return null;
@@ -734,7 +734,7 @@
 		 * @param integer $paramtype Provides a data type hint for drivers that have alternate quoting styles.
 		 * @return string
 		 */
-		public function quote($string, $paramtype = NULL) {
+		public function quote($string, $paramtype = null) {
 			return $this->tryActiveCommand(function () use ($string, $paramtype) {
 				if ($paramtype > -1) {
 					return parent::quote($string, $paramtype);
@@ -762,7 +762,7 @@
 		 * @param mixed $value Value to set for the selected attribute.
 		 * @return boolean
 		 */
-		public function setAttribute($attribute, $value) {
+		public function setAttribute($attribute, $value)  {
 			return $this->tryActiveCommand(function () use ($attribute, $value) {
 				return parent::setAttribute($attribute, $value);
 			}, false);
@@ -774,7 +774,7 @@
 		 * @param array $attributes Array of attributes and their values to set.
 		 * @return void
 		 */
-		public function setAttributes(array $attributes = null) {
+		public function setAttributes(array $attributes = null) : void {
 			if (!$this->active || $attributes === null) {
 				return;
 			}
@@ -794,7 +794,7 @@
 		 * @param array $arguments Possible collection of argument passed to statement.
 		 * @return void
 		 */
-		protected function storeQueryRecord($query, array $arguments = null) {
+		protected function storeQueryRecord(string $query, array $arguments = null) : void {
 			$this->queryCount++;
 			$this->queries[] = new PdoQuery($query, $arguments);
 

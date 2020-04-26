@@ -10,7 +10,7 @@
 	 * meta information on the called class.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	abstract class BaseDbClass {
 		/**
@@ -63,7 +63,7 @@
 		 *
 		 * @return void
 		 */
-		protected function __initialize() {
+		protected function __initialize() : void {
 			return;
 		}
 

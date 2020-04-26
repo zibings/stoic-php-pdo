@@ -12,7 +12,7 @@
 	 * calls to BaseDbModel::fromArray().
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class ClassPropertyNotFoundException extends \Exception { }
 
@@ -20,7 +20,7 @@
 	 * Represents a database field type.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class BaseDbTypes extends EnumBase {
 		const INTEGER = 0;
@@ -34,9 +34,9 @@
 		 * Retreives the PDO parameter type to be used with a
 		 * column of this type.
 		 *
-		 * @return integer|null
+		 * @return null|integer
 		 */
-		public function getDbType() {
+		public function getDbType() : ?int {
 			if ($this->getValue() === null) {
 				return null;
 			}
@@ -64,7 +64,7 @@
 	 * be generated for a BaseDbModel.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class BaseDbQueryTypes extends EnumBase {
 		const INVALID = 0;
@@ -79,7 +79,7 @@
 	 * in a BaseDbModel.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	class BaseDbField {
 		/**
@@ -144,7 +144,7 @@
 		 * @param boolean $allowsNulls Whether or not this should be allowed to be null.
 		 * @param boolean $autoIncrement Whether or not this receives an AUTO_INCREMENT value after insertion.
 		 */
-		public function __construct($column, $type, $isKey, $shouldInsert, $shouldUpdate, $allowsNulls = false, $autoIncrement = false) {
+		public function __construct(string $column, int $type, bool $isKey, bool $shouldInsert, bool $shouldUpdate, bool $allowsNulls = false, bool $autoIncrement = false) {
 			$this->allowsNulls = $allowsNulls;
 			$this->column = new StringHelper($column);
 			$this->type = new BaseDbTypes($type);
@@ -170,7 +170,7 @@
 	 * functionality without much fuss/overhead.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	abstract class BaseDbModel extends BaseDbClass {
 		/**
@@ -294,7 +294,7 @@
 		 *
 		 * @return void
 		 */
-		protected static function persistClassProperties() {
+		protected static function persistClassProperties() : void {
 			if (array_key_exists('BaseDbModel', static::$properties) === false) {
 				static::$properties['BaseDbModel'] = get_class_vars(get_class());
 			}
@@ -355,7 +355,7 @@
 		 * @param string $name Name of the property to attempt retrieving.
 		 * @return mixed
 		 */
-		public function __get($name) {
+		public function __get(string $name) {
 			if (array_key_exists($name, $this->dbFields) !== false) {
 				if ($this->dbFields[$name]->type->is(BaseDbTypes::STRING) && $this->{$name} instanceof StringHelper) {
 					return $this->{$name}->data();
@@ -377,7 +377,7 @@
 		 *
 		 * @return void
 		 */
-		final protected function __initialize() {
+		final protected function __initialize() : void {
 			static::persistClassProperties();
 
 			$this->dbDriver = ($this->db instanceof PdoHelper) ? $this->db->getDriver() : new PdoDrivers(PdoDrivers::PDO_UNKNOWN);
@@ -393,7 +393,7 @@
 		 * @param mixed $value Value to set property to if it exists.
 		 * @return void
 		 */
-		public function __set($name, $value) {
+		public function __set(string $name, $value) : void {
 			if (array_key_exists($name, $this->dbFields) !== false) {
 				$field = $this->dbFields[$name];
 
@@ -424,7 +424,7 @@
 		 *
 		 * @return void
 		 */
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			return;
 		}
 
@@ -434,7 +434,7 @@
 		 *
 		 * @return ReturnHelper
 		 */
-		public function create() {
+		public function create() : ReturnHelper {
 			$ret = new ReturnHelper();
 			$ret->makeBad();
 
@@ -509,7 +509,7 @@
 		 * @param null|ReturnHelper $ret Optional ReturnHelper to append message onto.
 		 * @return boolean
 		 */
-		protected function canProceed($operation, $value, ReturnHelper &$ret = null) {
+		protected function canProceed(string $operation, $value, ?ReturnHelper &$ret = null) : bool {
 			if ($value instanceof ReturnHelper) {
 				if ($value->isGood()) {
 					return true;
@@ -553,7 +553,7 @@
 		 *
 		 * @return ReturnHelper
 		 */
-		public function delete() {
+		public function delete() : ReturnHelper {
 			$ret = new ReturnHelper();
 			$ret->makeBad();
 
@@ -617,7 +617,6 @@
 			$ret = '';
 			$queryType = EnumBase::tryGetEnum($queryType, BaseDbQueryTypes::class);
 
-			$insertFields = [];
 			$insertColumns = [];
 			$selectColumns = [];
 			$updateColumns = [];
@@ -625,7 +624,6 @@
 
 			foreach ($this->dbFields as $property => $field) {
 				if ($field->shouldInsert) {
-					$insertFields[] = $this->getPropertyDbValue($property, $field);
 					$insertColumns[$field->column->data()] = ":{$property}";
 				}
 
@@ -671,7 +669,7 @@
 		 *
 		 * @return string
 		 */
-		public function getClassName() {
+		public function getClassName() : string {
 			return $this->className;
 		}
 
@@ -682,7 +680,7 @@
 		 * @codeCoverageIgnore
 		 * @return string
 		 */
-		protected function getDbColumnPrefix() {
+		protected function getDbColumnPrefix() : string {
 			$ret = '';
 
 			if (!$this->dbDriver->is(PdoDrivers::PDO_UNKNOWN)) {
@@ -733,7 +731,7 @@
 		 * @codeCoverageIgnore
 		 * @return string
 		 */
-		protected function getDbColumnSuffix() {
+		protected function getDbColumnSuffix() : string {
 			$ret = '';
 
 			if (!$this->dbDriver->is(PdoDrivers::PDO_UNKNOWN)) {
@@ -775,7 +773,7 @@
 		 * @param BaseDbField $field Field information to use when formatting value.
 		 * @return array
 		 */
-		protected function getPropertyDbValue($property, BaseDbField $field) {
+		protected function getPropertyDbValue(string $property, BaseDbField $field) {
 			$ret = array(":{$property}", '', $field->type->getDbType());
 
 			if ($field->allowsNulls && $this->{$property} === null) {
@@ -807,7 +805,7 @@
 		 *
 		 * @return string
 		 */
-		public function getShortClassName() {
+		public function getShortClassName() : string {
 			return $this->shortClassName;
 		}
 
@@ -817,7 +815,7 @@
 		 * @param ReturnHelper $ret ReturnHelper to scan for errors.
 		 * @return void
 		 */
-		protected function logErrors(ReturnHelper $ret) {
+		protected function logErrors(ReturnHelper $ret) : void {
 			if ($ret->isBad() && $ret->hasMessages()) {
 				foreach (array_values($ret->getMessages()) as $message) {
 					$this->log->error($message);
@@ -844,7 +842,7 @@
 		 *
 		 * @return ReturnHelper
 		 */
-		public function read() {
+		public function read() : ReturnHelper {
 			$ret = new ReturnHelper();
 			$ret->makeBad();
 
@@ -924,7 +922,7 @@
 		 * @throws \InvalidArgumentException Thrown if the property already has an assigned database field.
 		 * @return void
 		 */
-		protected function setColumn($property, $column, $type, $isKey, $shouldInsert, $shouldUpdate, $allowsNulls = false, $autoIncrement = false) {
+		protected function setColumn(string $property, string $column, int $type, bool $isKey, bool $shouldInsert, bool $shouldUpdate, bool $allowsNulls = false, bool $autoIncrement = false) : void {
 			if (array_key_exists($property, $this->dbFields) !== false) {
 				throw new \InvalidArgumentException("Cannot overwrite a field that has already been set");
 			}
@@ -942,7 +940,7 @@
 		 * @param mixed $value Value to set class property to.
 		 * @return void
 		 */
-		protected function setPropertyDbValue($property, BaseDbField $field, $value) {
+		protected function setPropertyDbValue(string $property, BaseDbField $field, $value) : void {
 			if ($field->type->is(BaseDbTypes::DATETIME) && $value !== null) {
 				$this->{$property} = new \DateTimeImmutable($value, new \DateTimeZone('UTC'));
 			} else if ($field->type->is(BaseDbTypes::BOOLEAN)) {
@@ -967,7 +965,7 @@
 		 * @param string $name Value of table name.
 		 * @return void
 		 */
-		protected function setTableName($name) {
+		protected function setTableName(string $name) : void {
 			$this->dbTable = new StringHelper($name);
 
 			return;
@@ -997,7 +995,7 @@
 		 *
 		 * @return ReturnHelper
 		 */
-		public function update() {
+		public function update() : ReturnHelper {
 			$ret = new ReturnHelper();
 			$ret->makeBad();
 

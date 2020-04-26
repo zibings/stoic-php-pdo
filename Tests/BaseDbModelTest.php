@@ -27,7 +27,7 @@
 		public $test;
 
 
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, true, true, true);
 
 			return;
@@ -39,7 +39,7 @@
 		protected $test2;
 
 
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			$this->setTableName('TestTable');
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, true, true, true);
 			$this->setColumn('test2', 'test2', BaseDbTypes::STRING, false, true, true, true);
@@ -49,7 +49,7 @@
 	}
 
 	class BadTestDbClass extends BaseDbModel {
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, false, true, true);
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, false, true, true);
 
@@ -65,7 +65,7 @@
 		public $test;
 
 
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, false, false, false);
 
 			return;
@@ -76,7 +76,7 @@
 		public $test;
 
 
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, false, true, true);
 
 			return;
@@ -170,7 +170,7 @@
 			return $ret;
 		}
 
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			$this->setTableName('Role');
 			$this->setColumn('id', 'ID', BaseDbTypes::INTEGER, true, false, false, false, true);
 			$this->setColumn('name', 'Name', BaseDbTypes::STRING, false, true, true);
@@ -199,7 +199,7 @@
 		protected $stringEnum;
 
 
-		protected function __setupModel() {
+		protected function __setupModel() : void {
 			$this->setTableName('Test');
 			$this->setColumn('id', 'ID', BaseDbTypes::INTEGER, true, false, false, false, true);
 			$this->setColumn('name', 'Name', BaseDbTypes::STRING, false, true, true, true);
