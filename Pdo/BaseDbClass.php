@@ -10,7 +10,7 @@
 	 * meta information on the called class.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.0.3
 	 */
 	abstract class BaseDbClass {
 		/**
@@ -46,7 +46,7 @@
 		 * @param \PDO $db PDO instance for use by object.
 		 * @param Logger $log Logger instance for use by object, defaults to new instance.
 		 */
-		final public function __construct(\PDO $db, Logger $log = null) {
+		public function __construct(\PDO $db, Logger $log = null) {
 			$this->db = $db;
 			$this->log = $log ?? new Logger();
 			$this->className = get_called_class();

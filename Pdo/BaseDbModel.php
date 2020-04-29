@@ -170,21 +170,9 @@
 	 * functionality without much fuss/overhead.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.0.3
 	 */
 	abstract class BaseDbModel extends BaseDbClass {
-		/**
-		 * Currently called class name.
-		 *
-		 * @var string
-		 */
-		protected $className = null;
-		/**
-		 * Internal PDO instance.
-		 *
-		 * @var \PDO
-		 */
-		protected $db = null;
 		/**
 		 * Internal storage for guessed driver type.
 		 *
@@ -206,19 +194,6 @@
 		 * @var StringHelper
 		 */
 		protected $dbTable = null;
-		/**
-		 * Internal \Stoic\Log\Logger instance.
-		 *
-		 * @var Logger
-		 */
-		protected $log = null;
-		/**
-		 * Current called class name without
-		 * namespaces.
-		 *
-		 * @var string
-		 */
-		protected $shortClassName;
 
 
 		/**
@@ -377,7 +352,7 @@
 		 *
 		 * @return void
 		 */
-		final protected function __initialize() : void {
+		protected function __initialize() : void {
 			static::persistClassProperties();
 
 			$this->dbDriver = ($this->db instanceof PdoHelper) ? $this->db->getDriver() : new PdoDrivers(PdoDrivers::PDO_UNKNOWN);
