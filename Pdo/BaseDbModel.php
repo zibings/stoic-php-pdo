@@ -741,6 +741,15 @@
 		}
 
 		/**
+		 * Retrieves the configured table name for the model.
+		 *
+		 * @return string
+		 */
+		public function getDbTableName() : string {
+			return $this->dbTable->data() ?? '';
+		}
+
+		/**
 		 * Attempts to retrieve the DB value for
 		 * the given property.
 		 *
@@ -857,9 +866,13 @@
 
 				$this->log->info("Attempting to 'read' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
 
-				$stmt->execute();
+				$cmp = $stmt->execute();
 
-				if ($stmt->rowCount() > 0) {
+				if (!$this->dbDriver->isIn(PdoDrivers::PDO_MSSQL, PdoDrivers::PDO_SQLSRV)) {
+					$cmp = $stmt->rowCount() > 0;
+				}
+
+				if ($cmp) {
 					$row = $stmt->fetch();
 
 					foreach ($this->dbFields as $property => $field) {
