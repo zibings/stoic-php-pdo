@@ -3,6 +3,7 @@
 	namespace Stoic\Pdo;
 
 	use Stoic\Log\Logger;
+	use Stoic\Utilities\ReturnHelper;
 
 	/**
 	 * Abstract base class that ensures the availability
@@ -64,6 +65,31 @@
 		 * @return void
 		 */
 		protected function __initialize() : void {
+			return;
+		}
+
+		/**
+		 * Method to perform common procedure of unrolling messages from a ReturnHelper into the Logger instance.
+		 *
+		 * @param ReturnHelper $rh ReturnHelper instance that can contain messages for logging.
+		 * @param string $default Default log message if ReturnHelper instance contains no messages.
+		 * @param string $level Optional LogLevel string, defaults to 'error'.
+		 * @throws \InvalidArgumentException Thrown if empty default message provided.
+		 * @return void
+		 */
+		protected function logReturnHelperMessages(ReturnHelper $rh, string $default, string $level = 'error') : void {
+			if (empty(trim($default))) {
+				throw new \InvalidArgumentException("Default log message must be defined");
+			}
+
+			if ($rh->hasMessages()) {
+				foreach (array_values($rh->getMessages()) as $msg) {
+					$this->log->log($level, $msg);
+				}
+			} else {
+				$this->log->log($level, $default);
+			}
+
 			return;
 		}
 
