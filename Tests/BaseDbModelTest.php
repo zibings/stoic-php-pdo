@@ -209,7 +209,7 @@
 			$this->setColumn('stringEnum', 'StringEnum', BaseDbTypes::STRING, false, true, true);
 
 			$this->intEnum = new TestEnum(1);
-			$this->stringEnum = TestEnum::fromString('VALUE_TWO');
+			$this->stringEnum = TestEnum::fromString('VALUE_ONE');
 
 			return;
 		}
@@ -401,7 +401,7 @@
 			$complete->name = 'Testing';
 			$complete->date = null;
 			$complete->active = false;
-			$complete->intEnum = 2;
+			$complete->intEnum = new TestEnum(2);
 			$complete->stringEnum = TestEnum::fromString('VALUE_ONE');
 
 			self::assertTrue($complete->create()->isGood());
@@ -415,7 +415,7 @@
 			$complete->name = 'Testing';
 			$complete->date = '2014-10-27 01:20:30';
 			$complete->active = true;
-			$complete->intEnum = 2;
+			$complete->intEnum = new TestEnum(2);
 			$complete->stringEnum = TestEnum::fromString('VALUE_ONE');
 
 			self::assertTrue($complete->create()->isGood());

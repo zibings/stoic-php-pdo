@@ -691,12 +691,12 @@
 		 * @param string $statement The SQL statement to prepare and execute.
 		 * @return \PDOStatement
 		 */
-		public function query(string $statement) {
-			return $this->tryActiveCommand(function () use ($statement) {
+		public function query(string $statement, ?int $fetchMode = null, mixed ...$fetchModeArgs) {
+			return $this->tryActiveCommand(function () use ($statement, $fetchMode, $fetchModeArgs) {
 				$ret = null;
 
 				try {
-					$ret = parent::query($statement);
+					$ret = parent::query($statement, $fetchMode, ...$fetchModeArgs);
 					$this->storeQueryRecord($statement);
 				// @codeCoverageIgnoreStart
 				} catch (\PDOException $ex) {

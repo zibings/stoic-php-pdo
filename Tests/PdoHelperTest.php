@@ -17,7 +17,7 @@
 	class PdoHelperTest extends TestCase {
 		protected static $hasSqlite = false;
 
-		public static function setUpBeforeClass() {
+		public static function setUpBeforeClass() : void {
 			if (array_search('sqlite', \PDO::getAvailableDrivers()) !== false) {
 				static::$hasSqlite = true;
 			}

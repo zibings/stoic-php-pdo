@@ -376,7 +376,7 @@
 					// @codeCoverageIgnoreStart
 					$this->{$name} = $value;
 					// @codeCoverageIgnoreEnd
-				} else if ($field->type->is(BaseDbTypes::STRING)) {
+				} else if ($field->type->is(BaseDbTypes::STRING) && !($this->{$name} instanceof EnumBase)) {
 					$this->{$name} = new StringHelper($value);
 				} else if ($field->type->is(BaseDbTypes::DATETIME) && !($value instanceof \DateTimeInterface)) {
 					$this->{$name} = new \DateTimeImmutable($value);
