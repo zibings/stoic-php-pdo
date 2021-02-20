@@ -960,8 +960,7 @@
 		}
 
 		/**
-		 * Returns all registered db fields with their values as
-		 * an array.
+		 * Returns all registered db fields with their values in an array.
 		 *
 		 * @return array
 		 */
@@ -971,6 +970,29 @@
 			if (count($this->dbFields) > 0) {
 				foreach (array_keys($this->dbFields) as $prop) {
 					$ret[$prop] = $this->{$prop};
+				}
+			}
+
+			return $ret;
+		}
+
+		/**
+		 * Returns all registered db fields with their serializable values in an array.
+		 *
+		 * @return array
+		 */
+		public function toSerializableArray() : array {
+			$ret = [];
+
+			if (count($this->dbFields) > 0) {
+				foreach ($this->dbFields as $property => $field) {
+					if ($field->type->is(BaseDbTypes::DATETIME) && $this->{$property} !== null) {
+						$ret[$property] = $this->{$property}->format('Y-m-d H:i:s');
+					} else if ($this->{$property} instanceof EnumBase) {
+						$ret[$property] = $this->{$property}->getValue();
+					} else {
+						$ret[$property] = $this->{$property};
+					}
 				}
 			}
 
