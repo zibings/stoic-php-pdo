@@ -172,7 +172,7 @@
 	 * @package Stoic\Pdo
 	 * @version 1.0.3
 	 */
-	abstract class BaseDbModel extends BaseDbClass {
+	abstract class BaseDbModel extends BaseDbClass implements \JsonSerializable {
 		/**
 		 * Internal storage for guessed driver type.
 		 *
@@ -791,6 +791,15 @@
 		 */
 		public function getShortClassName() : string {
 			return $this->shortClassName;
+		}
+
+		/**
+		 * Ensures the registered db fields are serializable by json_encode().
+		 *
+		 * @return array
+		 */
+		public function jsonSerialize() {
+			return $this->toSerializableArray();
 		}
 
 		/**
