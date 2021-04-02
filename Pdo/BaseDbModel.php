@@ -241,17 +241,25 @@
 				$keyFound = false;
 				$loweredKey = strtolower($key);
 
-				foreach (array_keys(static::$properties[$className]) as $prop) {
-					if (strtolower($prop) == $loweredKey) {
+				foreach ($ret->dbFields as $prop => $field) {
+					if ($field->column->compare($loweredKey, null, true) == 0) {
 						$keyFound = true;
 
-						if (array_key_exists($prop, $ret->dbFields)) {
-							$ret->setPropertyDbValue($prop, $ret->dbFields[$prop], $val);
-						} else {
-							$ret->{$prop} = $val;
-						}
+						$ret->setPropertyDbValue($prop, $field, $val);
 
 						break;
+					}
+				}
+
+				if ($keyFound === false) {
+					foreach (array_keys(static::$properties[$className]) as $prop) {
+						if (strtolower($prop) == $loweredKey) {
+							$keyFound = true;
+
+							$ret->{$prop} = $val;
+
+							break;
+						}
 					}
 				}
 
