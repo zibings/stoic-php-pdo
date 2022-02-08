@@ -593,10 +593,10 @@
 		 * only affects SELECT queries.
 		 *
 		 * @param integer|BaseDbQueryTypes $queryType Type of query to generate with class meta information.
-		 * @param boolean $includeSelectPrimaries Determines if SELECT queries should also include the WHERE section of the query, defaults to true.
+		 * @param boolean $includePrimaryWheres Determines if queries should also include the WHERE section with primary keys included, defaults to true.
 		 * @return string
 		 */
-		public function generateClassQuery($queryType, bool $includeSelectPrimaries = true) : string {
+		public function generateClassQuery($queryType, bool $includePrimaryWheres = true) : string {
 			$ret = '';
 			$queryType = EnumBase::tryGetEnum($queryType, BaseDbQueryTypes::class);
 
@@ -623,7 +623,7 @@
 
 			switch ($queryType->getValue()) {
 				case BaseDbQueryTypes::DELETE:
-					$ret = "DELETE FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
+					$ret = "DELETE FROM {$this->dbTable}";
 
 					break;
 				case BaseDbQueryTypes::INSERT:
@@ -633,15 +633,15 @@
 				case BaseDbQueryTypes::SELECT:
 					$ret = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($selectColumns)) . $this->getDbColumnSuffix() . " FROM {$this->dbTable}";
 
-					if ($includeSelectPrimaries) {
-						$ret .= " WHERE " . implode(' AND ', array_values($primaryStrings));
-					}
-
 					break;
 				case BaseDbQueryTypes::UPDATE:
-					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
+					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns));
 
 					break;
+			}
+
+			if (!$queryType->is(BaseDbQueryTypes::INSERT) && $includePrimaryWheres) {
+				$ret .= " WHERE " .implode(' AND ', array_values($primaryStrings));
 			}
 
 			return $ret;
