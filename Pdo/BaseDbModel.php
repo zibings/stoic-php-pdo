@@ -457,7 +457,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to create " . $this->className . " automatically with...\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to create " . $this->className . " automatically with...\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 
@@ -571,7 +571,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to run generated 'delete'..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to run generated 'delete'..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 				$ret->makeGood();
@@ -881,7 +881,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to 'read' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to 'read' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$cmp = $stmt->execute();
 
@@ -1073,7 +1073,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to 'update' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to 'update' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 				$ret->makeGood();
