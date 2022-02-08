@@ -392,7 +392,7 @@
 				$driver           = $this->instance->getAttribute(\PDO::ATTR_DRIVER_NAME);
 				$this->driverKey  = static::$driverLookup[$driver][1];
 				$this->driver     = new PdoDrivers(static::$driverLookup[$driver][0]);
-				
+				$this->active     = true;
 
 				return;
 			}
