@@ -817,6 +817,9 @@
 		 * @return void
 		 */
 		protected function logErrors(ReturnHelper $ret) : void {
+			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+			$this->log->error("BaseDbModel error log originating from {FILE}:{LINE}", ['FILE' => $trace[0]['file'], 'LINE' => $trace[0]['line']]);
+
 			if ($ret->isBad() && $ret->hasMessages()) {
 				foreach (array_values($ret->getMessages()) as $message) {
 					$this->log->error($message);
