@@ -253,6 +253,12 @@
 		 */
 		protected $errors = [];
 		/**
+		 * Optional internal PDO instance, for when the object is wrapping a pre-existing resource.
+		 *
+		 * @var null|\PDO
+		 */
+		protected $instance = null;
+		/**
 		 * The array of options provided at initialization, if available.
 		 *
 		 * @var array
@@ -377,8 +383,20 @@
 		 * @param string $username Username for the DSN string, optional depending on PDO driver.
 		 * @param string $password Password for the DSN string, optional depending on PDO driver.
 		 * @param array $options A key=>value array of driver-specific connection options.
+		 * @param \PDO $instance Optional PDO instance to wrap around instead of initializing internally.
 		 */
-		public function __construct(string $dsn, string $username = null, string $password = null, array $options = null) {
+		public function __construct(string $dsn, string $username = null, string $password = null, array $options = null, \PDO $instance = null) {
+			if ($instance !== null) {
+				$this->instance = $instance;
+
+				$driver           = $this->instance->getAttribute(\PDO::ATTR_DRIVER_NAME);
+				$this->driverKey  = static::$driverLookup[$driver][1];
+				$this->driver     = new PdoDrivers(static::$driverLookup[$driver][0]);
+				$this->active     = true;
+
+				return;
+			}
+
 			try {
 				$args = [$dsn];
 
@@ -403,7 +421,7 @@
 
 				foreach (array_keys(static::$driverLookup) as $prefix) {
 					if (strtolower(substr($dsn, 0, (strlen($prefix) + 1))) == strtolower($prefix) . ':') {
-						$this->driverName = static::$driverLookup[$prefix][1];
+						$this->driverKey = static::$driverLookup[$prefix][1];
 						$this->driver = new PdoDrivers(static::$driverLookup[$prefix][0]);
 
 						break;
@@ -434,6 +452,10 @@
 		 */
 		public function beginTransaction() : bool {
 			return $this->tryActiveCommand(function () {
+				if ($this->instance !== null) {
+					return $this->instance->beginTransaction();
+				}
+
 				return parent::beginTransaction();
 			}, false);
 		}
@@ -445,6 +467,10 @@
 		 */
 		public function commit() : bool {
 			return $this->tryActiveCommand(function () {
+				if ($this->instance !== null) {
+					return $this->instance->commit();
+				}
+
 				return parent::commit();
 			}, false);
 		}
@@ -457,6 +483,10 @@
 		 */
 		public function errorCode() : string {
 			return $this->tryActiveCommand(function () {
+				if ($this->instance !== null) {
+					return $this->instance->errorCode();
+				}
+
 				return parent::errorCode();
 			}, '');
 		}
@@ -469,6 +499,10 @@
 		 */
 		public function errorInfo() {
 			return $this->tryActiveCommand(function () {
+				if ($this->instance !== null) {
+					return $this->instance->errorInfo();
+				}
+
 				return parent::errorInfo();
 			}, []);
 		}
@@ -485,7 +519,7 @@
 				$ret = 0;
 
 				try {
-					$ret = parent::exec($query);
+					$ret = ($this->instance !== null) ? $this->instance->exec($query) : parent::exec($query);
 					$this->storeQueryRecord($query);
 				} catch (\PDOException $ex) {
 					$this->errors[] = new PdoError($ex, new PdoQuery($query));
@@ -506,11 +540,15 @@
 		 */
 		public function execStored(string $key) : int {
 			return $this->tryActiveCommand(function () use ($key) {
-				if (array_key_exists($key, static::$storedQueries[$this->driverName]) === false || count(static::$storedQueries[$this->driverName][$key]->arguments) > 0) {
+				if (array_key_exists($key, static::$storedQueries[$this->driverKey]) === false || count(static::$storedQueries[$this->driverKey][$key]->arguments) > 0) {
 					return 0;
 				}
 
-				return $this->exec(static::$storedQueries[$this->driverName][$key]->query);
+				if ($this->instance !== null) {
+					return $this->instance->exec(static::$storedQueries[$this->driverKey][$key]->query);
+				}
+
+				return $this->exec(static::$storedQueries[$this->driverKey][$key]->query);
 			}, 0);
 		}
 
@@ -522,6 +560,10 @@
 		 */
 		public function getAttribute($attribute) {
 			return $this->tryActiveCommand(function () use ($attribute) {
+				if ($this->instance !== null) {
+					return $this->instance->getAttribute($attribute);
+				}
+
 				return parent::getAttribute($attribute);
 			}, null);
 		}
@@ -641,21 +683,21 @@
 		 */
 		public function prepareStored(string $key, array $arguments = [], array $options = null) {
 			return $this->tryActiveCommand(function () use ($key, $arguments, $options) {
-				if (array_key_exists($key, static::$storedQueries[$this->driverName]) === false || count(static::$storedQueries[$this->driverName][$key]->arguments) !== count($arguments)) {
+				if (array_key_exists($key, static::$storedQueries[$this->driverKey]) === false || count(static::$storedQueries[$this->driverKey][$key]->arguments) !== count($arguments)) {
 					return null;
 				}
 
 				$args = [];
 				$stmt = null;
-				$statement = static::$storedQueries[$this->driverName][$key]->query;
+				$statement = static::$storedQueries[$this->driverKey][$key]->query;
 
 				if (count($arguments) > 0) {
 					foreach ($arguments as $aKey => $value) {
-						if (array_key_exists($aKey, static::$storedQueries[$this->driverName][$key]->arguments) === false) {
+						if (array_key_exists($aKey, static::$storedQueries[$this->driverKey][$key]->arguments) === false) {
 							return null;
 						}
 
-						$args[] = ["{$aKey}", $value, static::$storedQueries[$this->driverName][$key]->arguments[$aKey]->type];
+						$args[] = ["{$aKey}", $value, static::$storedQueries[$this->driverKey][$key]->arguments[$aKey]->type];
 					}
 				}
 
@@ -719,11 +761,11 @@
 		 */
 		public function queryStored(string $key) {
 			return $this->tryActiveCommand(function () use ($key) {
-				if (array_key_exists($key, static::$storedQueries[$this->driverName]) === false || count(static::$storedQueries[$this->driverName][$key]->arguments) > 0) {
+				if (array_key_exists($key, static::$storedQueries[$this->driverKey]) === false || count(static::$storedQueries[$this->driverKey][$key]->arguments) > 0) {
 					return null;
 				}
 
-				return $this->query(static::$storedQueries[$this->driverName][$key]->query);
+				return $this->query(static::$storedQueries[$this->driverKey][$key]->query);
 			}, null);
 		}
 

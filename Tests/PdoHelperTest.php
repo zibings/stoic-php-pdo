@@ -79,6 +79,10 @@
 			self::assertTrue((new PdoHelper('sqlite::memory:'))->isActive());
 			self::assertTrue((new PdoHelper('sqlite::memory:'))->getDriver()->getValue() === PdoDrivers::PDO_SQLITE);
 
+			$pdo = new \PDO('sqlite::memory:');
+			self::assertTrue((new PdoHelper('', null, null, null, $pdo))->isActive());
+			self::assertTrue((new PdoHelper('', null, null, null, $pdo))->getDriver()->getValue() === PdoDrivers::PDO_SQLITE);
+
 			return;
 		}
 

@@ -32,7 +32,7 @@
 			parent::__construct($db, $log);
 
 			if (!($db instanceof PdoHelper)) {
-				throw new \InvalidArgumentException("StoicDbClass and derived classes require a PdoHelper");
+				$this->db = new PdoHelper('', null, null, null, $db);
 			}
 
 			return;

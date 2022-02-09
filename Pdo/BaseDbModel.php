@@ -457,7 +457,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to create " . $this->className . " automatically with...\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to create " . $this->className . " automatically with...\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 
@@ -571,7 +571,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to run generated 'delete'..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to run generated 'delete'..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 				$ret->makeGood();
@@ -593,10 +593,10 @@
 		 * only affects SELECT queries.
 		 *
 		 * @param integer|BaseDbQueryTypes $queryType Type of query to generate with class meta information.
-		 * @param boolean $includeSelectPrimaries Determines if SELECT queries should also include the WHERE section of the query, defaults to true.
+		 * @param boolean $includePrimaryWheres Determines if queries should also include the WHERE section with primary keys included, defaults to true.
 		 * @return string
 		 */
-		public function generateClassQuery($queryType, bool $includeSelectPrimaries = true) : string {
+		public function generateClassQuery($queryType, bool $includePrimaryWheres = true) : string {
 			$ret = '';
 			$queryType = EnumBase::tryGetEnum($queryType, BaseDbQueryTypes::class);
 
@@ -623,7 +623,7 @@
 
 			switch ($queryType->getValue()) {
 				case BaseDbQueryTypes::DELETE:
-					$ret = "DELETE FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
+					$ret = "DELETE FROM {$this->dbTable}";
 
 					break;
 				case BaseDbQueryTypes::INSERT:
@@ -633,15 +633,15 @@
 				case BaseDbQueryTypes::SELECT:
 					$ret = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($selectColumns)) . $this->getDbColumnSuffix() . " FROM {$this->dbTable}";
 
-					if ($includeSelectPrimaries) {
-						$ret .= " WHERE " . implode(' AND ', array_values($primaryStrings));
-					}
-
 					break;
 				case BaseDbQueryTypes::UPDATE:
-					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
+					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns));
 
 					break;
+			}
+
+			if (!$queryType->is(BaseDbQueryTypes::INSERT) && $includePrimaryWheres) {
+				$ret .= " WHERE " .implode(' AND ', array_values($primaryStrings));
 			}
 
 			return $ret;
@@ -817,6 +817,9 @@
 		 * @return void
 		 */
 		protected function logErrors(ReturnHelper $ret) : void {
+			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+			$this->log->error("BaseDbModel error log originating from {FILE}:{LINE}", ['FILE' => $trace[0]['file'], 'LINE' => $trace[0]['line']]);
+
 			if ($ret->isBad() && $ret->hasMessages()) {
 				foreach (array_values($ret->getMessages()) as $message) {
 					$this->log->error($message);
@@ -881,7 +884,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to 'read' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to 'read' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$cmp = $stmt->execute();
 
@@ -1073,7 +1076,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to 'update' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to 'update' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 				$ret->makeGood();
