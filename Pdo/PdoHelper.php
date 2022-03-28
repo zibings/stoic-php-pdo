@@ -661,9 +661,9 @@
 		 * @param string $key Identifier for stored query.
 		 * @param array $arguments Argument values in name=>value format to include with statement template.
 		 * @param null|array $options Holds one or more key=>value pairs to set attribute values for the PDOStatement object that this method returns.
-		 * @return \PDOStatement
+		 * @return null|\PDOStatement
 		 */
-		public function prepareStored(string $key, array $arguments = [], ?array $options = null) : \PDOStatement {
+		public function prepareStored(string $key, array $arguments = [], ?array $options = null) : ?\PDOStatement {
 			return $this->tryActiveCommand(function () use ($key, $arguments, $options) {
 				if (array_key_exists($key, static::$storedQueries[$this->driverKey]) === false || count(static::$storedQueries[$this->driverKey][$key]->arguments) !== count($arguments)) {
 					return null;
@@ -717,7 +717,7 @@
 		 * @param mixed $fetchModeArgs Optional arguments for the fetch mode.
 		 * @return \PDOStatement
 		 */
-		public function query($statement, $fetchMode = \PDO::ATTR_DEFAULT_FETCH_MODE, mixed ...$fetchModeArgs) : \PDOStatement {
+		public function query($statement, $fetchMode = \PDO::FETCH_BOTH, mixed ...$fetchModeArgs) : \PDOStatement {
 			return $this->tryActiveCommand(function () use ($statement, $fetchMode, $fetchModeArgs) {
 				$ret = null;
 
@@ -740,9 +740,9 @@
 		 * Executes a stored SQL statement, returning a result set as a PDOStatement object.
 		 *
 		 * @param string $key Identifier for stored query.
-		 * @return \PDOStatement
+		 * @return null|\PDOStatement
 		 */
-		public function queryStored(string $key) : \PDOStatement {
+		public function queryStored(string $key) : ?\PDOStatement {
 			return $this->tryActiveCommand(function () use ($key) {
 				if (array_key_exists($key, static::$storedQueries[$this->driverKey]) === false || count(static::$storedQueries[$this->driverKey][$key]->arguments) > 0) {
 					return null;
