@@ -24,7 +24,7 @@
 		 *
 		 * @var null|\PDO
 		 */
-		protected ?\PDO $db = null;
+		protected $db = null;
 		/**
 		 * Internal Logger instance.
 		 *

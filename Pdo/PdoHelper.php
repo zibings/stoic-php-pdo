@@ -8,7 +8,7 @@
 	 * Enumerated PDO driver types, used for meta information.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class PdoDrivers extends EnumBase {
 		const PDO_UNKNOWN  = 0;
@@ -29,25 +29,24 @@
 	}
 
 	/**
-	 * Data for an argument used with a stored
-	 * query.
+	 * Data for an argument used with a stored query.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class PdoStoredArgument {
 		/**
 		 * String value of argument name.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		public $name = null;
+		public ?string $name = null;
 		/**
 		 * PDO parameter type for argument.
 		 *
-		 * @var integer
+		 * @var int
 		 */
-		public $type = -1;
+		public int $type = -1;
 
 
 		/**
@@ -68,28 +67,27 @@
 	 * Meta information for a query intended for re-use.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class PdoStoredQuery {
 		/**
 		 * String identifier of query.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		public $key = null;
+		public ?string $key = null;
 		/**
 		 * Query string stored for later use.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		public $query = null;
+		public ?string $query = null;
 		/**
-		 * Arguments the query string will require
-		 * when used.
+		 * Arguments the query string will require when used.
 		 *
 		 * @var PdoStoredArgument[]
 		 */
-		public $arguments = [];
+		public array $arguments = [];
 
 
 		/**
@@ -97,7 +95,7 @@
 		 *
 		 * @param string $key String identifier of query.
 		 * @param string $query Query string being recorded.
-		 * @param PdoStoredArgument[] $arguments Optional array of arguments to use with query.
+		 * @param null|array $arguments Optional array of arguments to use with query.
 		 */
 		public function __construct(string $key, string $query, array $arguments = null) {
 			$this->key = $key;
@@ -114,11 +112,10 @@
 	}
 
 	/**
-	 * Query meta class for tracking queries run through the
-	 * PdoHelper.
+	 * Query meta-class for tracking queries run through the PdoHelper.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class PdoQuery implements \JsonSerializable {
 		/**
@@ -126,22 +123,22 @@
 		 *
 		 * @var array
 		 */
-		public $arguments = [];
+		public array $arguments = [];
 		/**
 		 * Query string.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		public $query = null;
+		public ?string $query = null;
 
 
 		/**
 		 * Instantiates a new PdoQuery object.
 		 *
 		 * @param string $query The query string that is being recorded.
-		 * @param array $arguments Optional array of arguments used with query in format ['name', 'value', 'type'].
+		 * @param null|array $arguments Optional array of arguments used with query in format ['name', 'value', 'type'].
 		 */
-		public function __construct(string $query, array $arguments = null) {
+		public function __construct(string $query, ?array $arguments = null) {
 			$this->query = $query;
 
 			if ($arguments !== null) {
@@ -154,9 +151,9 @@
 		/**
 		 * Provides serialized data structure for json_encode.
 		 *
-		 * @return array
+		 * @return mixed
 		 */
-		public function jsonSerialize() {
+		public function jsonSerialize() : mixed {
 			return [
 				'query' => $this->query,
 				'arguments' => $this->arguments
@@ -165,25 +162,24 @@
 	}
 
 	/**
-	 * Error meta class for useful additional information
-	 * on queries run through the PdoHelper.
+	 * Error meta-class for useful additional information on queries run through the PdoHelper.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class PdoError implements \JsonSerializable {
 		/**
 		 * The PDOException that was thrown at the time of the error.
 		 *
-		 * @var \PDOException
+		 * @var null|\PDOException
 		 */
-		public $exception = null;
+		public ?\PDOException $exception = null;
 		/**
 		 * The query that caused the error, if available.
 		 *
-		 * @var PdoQuery
+		 * @var null|PdoQuery
 		 */
-		public $query = null;
+		public ?PdoQuery $query = null;
 
 
 		/**
@@ -202,9 +198,9 @@
 		/**
 		 * Provides serialized data structure for json_encode.
 		 *
-		 * @return array
+		 * @return mixed
 		 */
-		public function jsonSerialize() {
+		public function jsonSerialize() : mixed {
 			return [
 				'message' => $this->exception->getMessage(),
 				'stackTrace' => $this->exception->getTraceAsString(),
@@ -214,69 +210,66 @@
 	}
 
 	/**
-	 * Class that wraps around a PDO instance to provide
-	 * useful common operations and meta information.
+	 * Class that wraps around a PDO instance to provide useful common operations and meta information.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class PdoHelper extends \PDO {
 		/**
-		 * Whether or not the class has an active connection.
+		 * Whether the class has an active connection.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
-		protected $active = false;
+		protected bool $active = false;
 		/**
 		 * The DSN that was provided at initialization.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		public $dsn = null;
+		public ?string $dsn = null;
 		/**
-		 * Currently configured driver as specified by the
-		 * connection string.
+		 * Currently configured driver as specified by the connection string.
 		 *
-		 * @var PdoDrivers
+		 * @var null|PdoDrivers
 		 */
-		protected $driver = null;
+		protected ?PdoDrivers $driver = null;
 		/**
 		 * Key for currently configured driver.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		protected $driverKey = null;
+		protected ?string $driverKey = null;
 		/**
 		 * Collection of errors thrown by connection.
 		 *
 		 * @var PdoError[]
 		 */
-		protected $errors = [];
+		protected array $errors = [];
 		/**
 		 * Optional internal PDO instance, for when the object is wrapping a pre-existing resource.
 		 *
 		 * @var null|\PDO
 		 */
-		protected $instance = null;
+		protected ?\PDO $instance = null;
 		/**
 		 * The array of options provided at initialization, if available.
 		 *
 		 * @var array
 		 */
-		public $options = [];
+		public array $options = [];
 		/**
-		 * Collection of query strings that have been run through
-		 * the helper.
+		 * Collection of query strings that have been run through the helper.
 		 *
 		 * @var PdoQuery[]
 		 */
-		protected $queries = [];
+		protected array $queries = [];
 		/**
 		 * Number of queries that have been run through the helper.
 		 *
-		 * @var integer
+		 * @var int
 		 */
-		protected $queryCount = 0;
+		protected int $queryCount = 0;
 
 
 		/**
@@ -284,7 +277,7 @@
 		 *
 		 * @var array
 		 */
-		protected static $driverLookup = [
+		protected static array $driverLookup = [
 			'4D'       => [PdoDrivers::PDO_4D,       '4d'],
 			'cubrid'   => [PdoDrivers::PDO_CUBRID,   'cubrid'],
 			'firebird' => [PdoDrivers::PDO_FIREBIRD, 'firebird'],
@@ -301,25 +294,23 @@
 			'sybase'   => [PdoDrivers::PDO_SYBASE,   'sybase']
 		];
 		/**
-		 * Static collection of stored queries, grouped by
-		 * driver and key.
+		 * Static collection of stored queries, grouped by driver and key.
 		 *
 		 * @var array
 		 */
-		protected static $storedQueries = [];
+		protected static array $storedQueries = [];
 
 
 		/**
-		 * Attempts to store a driver-specific query for later recall via the
-		 * provided key.
+		 * Attempts to store a driver-specific query for later recall via the provided key.
 		 *
-		 * @param integer|string $driver Driver identifier (integer or string).
+		 * @param int|string $driver Driver identifier (integer or string).
 		 * @param string $key String identifier for the query.
 		 * @param string $query Query string that should be stored by the given key.
-		 * @param array $arguments Optional array of arguments the query will require in formation 'name' => 'type'.
-		 * @return boolean
+		 * @param null|array $arguments Optional array of arguments the query will require in formation 'name' => 'type'.
+		 * @return bool
 		 */
-		public static function storeQuery($driver, string $key, string $query, array $arguments = null) : bool {
+		public static function storeQuery(int|string $driver, string $key, string $query, ?array $arguments = null) : bool {
 			$ret = true;
 			$foundDriver = false;
 			$driverTestZero = true;
@@ -330,7 +321,7 @@
 				$driver = strtolower($driver);
 			}
 
-			foreach (array_values(static::$driverLookup) as $drvr) {
+			foreach (static::$driverLookup as $drvr) {
 				if (($driverTestZero && $drvr[0] === $driver) || (!$driverTestZero && $drvr[1] === $driver)) {
 					$foundDriver = true;
 
@@ -358,16 +349,15 @@
 		}
 
 		/**
-		 * Attempts to store one or more driver-specific queries for later recall
-		 * via the provided key(s).
+		 * Attempts to store one or more driver-specific queries for later recall via the provided key(s).
 		 *
-		 * @param integer|string $driver Driver identifier (integer or string).
-		 * @param array $queries Array of query information to store, in format ['key', 'query', [':argName' => 'argType']].
+		 * @param int|string $driver Driver identifier (integer or string).
+		 * @param null|array $queries Array of query information to store, in format ['key', 'query', [':argName' => 'argType']].
 		 * @return void
 		 */
-		public static function storeQueries($driver, array $queries = null) : void {
+		public static function storeQueries(int|string $driver, ?array $queries = null) : void {
 			if ($queries !== null) {
-				foreach (array_values($queries) as $query) {
+				foreach ($queries as $query) {
 					static::storeQuery($driver, $query[0], $query[1], $query[2]);
 				}
 			}
@@ -380,12 +370,12 @@
 		 * Instantiates a new PdoHelper object.
 		 *
 		 * @param string $dsn Data source name (DSN) containing the information to connect to the database.
-		 * @param string $username Username for the DSN string, optional depending on PDO driver.
-		 * @param string $password Password for the DSN string, optional depending on PDO driver.
-		 * @param array $options A key=>value array of driver-specific connection options.
-		 * @param \PDO $instance Optional PDO instance to wrap around instead of initializing internally.
+		 * @param null|string $username Username for the DSN string, optional depending on PDO driver.
+		 * @param null|string $password Password for the DSN string, optional depending on PDO driver.
+		 * @param null|array $options A key=>value array of driver-specific connection options.
+		 * @param null|\PDO $instance Optional PDO instance to wrap around instead of initializing internally.
 		 */
-		public function __construct(string $dsn, string $username = null, string $password = null, array $options = null, \PDO $instance = null) {
+		public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null, ?\PDO $instance = null) {
 			if ($instance !== null) {
 				$this->instance = $instance;
 
@@ -448,7 +438,7 @@
 		/**
 		 * Initiates a transaction.
 		 *
-		 * @return boolean
+		 * @return bool
 		 */
 		public function beginTransaction() : bool {
 			return $this->tryActiveCommand(function () {
@@ -463,7 +453,7 @@
 		/**
 		 * Commits a transaction.
 		 *
-		 * @return boolean
+		 * @return bool
 		 */
 		public function commit() : bool {
 			return $this->tryActiveCommand(function () {
@@ -476,8 +466,7 @@
 		}
 
 		/**
-		 * Fetch the SQLSTATE associated with the last operation on
-		 * the database handle.
+		 * Fetch the SQLSTATE associated with the last operation on the database handle.
 		 *
 		 * @return string
 		 */
@@ -492,12 +481,11 @@
 		}
 
 		/**
-		 * Fetch extended error information associated with the last
-		 * operation on the database handle.
+		 * Fetch extended error information associated with the last operation on the database handle.
 		 *
 		 * @return array
 		 */
-		public function errorInfo() {
+		public function errorInfo() : array {
 			return $this->tryActiveCommand(function () {
 				if ($this->instance !== null) {
 					return $this->instance->errorInfo();
@@ -508,13 +496,12 @@
 		}
 
 		/**
-		 * Execute a SQL statement and return the number of affected
-		 * rows.
+		 * Execute a SQL statement and return the number of affected rows.
 		 *
-		 * @param string $statement The SQL statement to prepare and execute
-		 * @return integer
+		 * @param string $query The SQL statement to prepare and execute
+		 * @return int
 		 */
-		public function exec($query) {
+		public function exec(string $query) : int {
 			return $this->tryActiveCommand(function () use ($query) {
 				$ret = 0;
 
@@ -532,11 +519,10 @@
 		}
 
 		/**
-		 * Execute a stored SQL statement and return the number of
-		 * affected rows.
+		 * Execute a stored SQL statement and return the number of affected rows.
 		 *
 		 * @param string $key The key identifying the stored query.
-		 * @return integer
+		 * @return int
 		 */
 		public function execStored(string $key) : int {
 			return $this->tryActiveCommand(function () use ($key) {
@@ -555,10 +541,10 @@
 		/**
 		 * Retrieve a database connection attribute.
 		 *
-		 * @param integer $attribute One of the \PDO::ATTR_* constants.
+		 * @param int $attribute One of the \PDO::ATTR_* constants.
 		 * @return mixed
 		 */
-		public function getAttribute($attribute) {
+		public function getAttribute(int $attribute) : mixed {
 			return $this->tryActiveCommand(function () use ($attribute) {
 				if ($this->instance !== null) {
 					return $this->instance->getAttribute($attribute);
@@ -578,30 +564,27 @@
 		}
 
 		/**
-		 * Retrieves all errors that have been recorded by
-		 * the helper instance.
+		 * Retrieves all errors that have been recorded by the helper instance.
 		 *
 		 * @return PdoError[]
 		 */
-		public function getErrors() {
+		public function getErrors() : array {
 			return $this->errors;
 		}
 
 		/**
-		 * Retrieves all queries that have been recorded by
-		 * the helper instance.
+		 * Retrieves all queries that have been recorded by the helper instance.
 		 *
 		 * @return PdoQuery[]
 		 */
-		public function getQueries() {
+		public function getQueries() : array {
 			return $this->queries;
 		}
 
 		/**
-		 * Retrieves the number of queries that have been
-		 * run by the helper instance.
+		 * Retrieves the number of queries that have been run by the helper instance.
 		 *
-		 * @return integer
+		 * @return int
 		 */
 		public function getQueryCount() : int {
 			return $this->queryCount;
@@ -610,7 +593,7 @@
 		/**
 		 * Checks if inside a transaction.
 		 *
-		 * @return boolean
+		 * @return bool
 		 */
 		public function inTransaction() : bool {
 			return $this->tryActiveCommand(function () {
@@ -619,10 +602,9 @@
 		}
 
 		/**
-		 * Returns whether or not the helper has an active
-		 * database connection.
+		 * Returns whether the helper has an active database connection.
 		 *
-		 * @return boolean
+		 * @return bool
 		 */
 		public function isActive() : bool {
 			return $this->active;
@@ -631,10 +613,10 @@
 		/**
 		 * Returns the ID of the last inserted row or sequence value.
 		 *
-		 * @param string $seqname Name of the sequence object from which the ID should be returned.
+		 * @param null|string $seqname Name of the sequence object from which the ID should be returned.
 		 * @return mixed
 		 */
-		public function lastInsertId($seqname = null) {
+		public function lastInsertId(?string $seqname = null) : mixed {
 			return $this->tryActiveCommand(function () use ($seqname) {
 				return parent::lastInsertId($seqname);
 			}, '');
@@ -644,10 +626,10 @@
 		 * Prepares a statement for execution and returns a statement object.
 		 *
 		 * @param string $statement This must be a valid SQL statement template for the target database server.
-		 * @param array $options Holds one or more key=>value pairs to set attribute values for the PDOStatement object that this method returns.
+		 * @param null|array $options Holds one or more key=>value pairs to set attribute values for the PDOStatement object that this method returns.
 		 * @return \PDOStatement
 		 */
-		public function prepare($statement, $options = null) {
+		public function prepare(string $statement, ?array $options = null) : \PDOStatement {
 			return $this->tryActiveCommand(function () use ($statement, $options) {
 				$ret = null;
 
@@ -678,10 +660,10 @@
 		 *
 		 * @param string $key Identifier for stored query.
 		 * @param array $arguments Argument values in name=>value format to include with statement template.
-		 * @param array $options Holds one or more key=>value pairs to set attribute values for the PDOStatement object that this method returns.
+		 * @param null|array $options Holds one or more key=>value pairs to set attribute values for the PDOStatement object that this method returns.
 		 * @return \PDOStatement
 		 */
-		public function prepareStored(string $key, array $arguments = [], array $options = null) {
+		public function prepareStored(string $key, array $arguments = [], ?array $options = null) : \PDOStatement {
 			return $this->tryActiveCommand(function () use ($key, $arguments, $options) {
 				if (array_key_exists($key, static::$storedQueries[$this->driverKey]) === false || count(static::$storedQueries[$this->driverKey][$key]->arguments) !== count($arguments)) {
 					return null;
@@ -710,7 +692,7 @@
 						$stmt = parent::prepare($statement);
 					}
 
-					foreach (array_values($args) as $argSet) {
+					foreach ($args as $argSet) {
 						$stmt->bindValue($argSet[0], $argSet[1], $argSet[2]);
 					}
 
@@ -731,9 +713,11 @@
 		 * Executes a SQL statement, returning a result set as a PDOStatement object.
 		 *
 		 * @param string $statement The SQL statement to prepare and execute.
+		 * @param int $fetchMode Fetch mode to use after executing statement.
+		 * @param mixed $fetchModeArgs Optional arguments for the fetch mode.
 		 * @return \PDOStatement
 		 */
-		public function query(string $statement, ?int $fetchMode = null, mixed ...$fetchModeArgs) {
+		public function query($statement, $fetchMode = \PDO::ATTR_DEFAULT_FETCH_MODE, mixed ...$fetchModeArgs) : \PDOStatement {
 			return $this->tryActiveCommand(function () use ($statement, $fetchMode, $fetchModeArgs) {
 				$ret = null;
 
@@ -753,13 +737,12 @@
 		}
 
 		/**
-		 * Executes a stored SQL statement, returning a result set as a PDOStatement
-		 * object.
+		 * Executes a stored SQL statement, returning a result set as a PDOStatement object.
 		 *
 		 * @param string $key Identifier for stored query.
 		 * @return \PDOStatement
 		 */
-		public function queryStored(string $key) {
+		public function queryStored(string $key) : \PDOStatement {
 			return $this->tryActiveCommand(function () use ($key) {
 				if (array_key_exists($key, static::$storedQueries[$this->driverKey]) === false || count(static::$storedQueries[$this->driverKey][$key]->arguments) > 0) {
 					return null;
@@ -773,10 +756,10 @@
 		 * Quotes a string for use in a query.
 		 *
 		 * @param string $string The string to be quoted.
-		 * @param integer $paramtype Provides a data type hint for drivers that have alternate quoting styles.
+		 * @param null|int $paramtype Provides a data type hint for drivers that have alternate quoting styles.
 		 * @return string
 		 */
-		public function quote($string, $paramtype = null) {
+		public function quote(string $string, ?int $paramtype = null) : string {
 			return $this->tryActiveCommand(function () use ($string, $paramtype) {
 				if ($paramtype > -1) {
 					return parent::quote($string, $paramtype);
@@ -789,7 +772,7 @@
 		/**
 		 * Rolls back a transaction.
 		 *
-		 * @return boolean
+		 * @return bool
 		 */
 		public function rollback() : bool {
 			return $this->tryActiveCommand(function () {
@@ -800,11 +783,11 @@
 		/**
 		 * Set an attribute.
 		 *
-		 * @param integer $attribute PDO::ATTR_* constant to set on handler.
+		 * @param int $attribute PDO::ATTR_* constant to set on handler.
 		 * @param mixed $value Value to set for the selected attribute.
-		 * @return boolean
+		 * @return bool
 		 */
-		public function setAttribute($attribute, $value)  {
+		public function setAttribute(int $attribute, mixed $value) : bool {
 			return $this->tryActiveCommand(function () use ($attribute, $value) {
 				return parent::setAttribute($attribute, $value);
 			}, false);
@@ -813,10 +796,10 @@
 		/**
 		 * Sets multiple attributes in format attribute=>value.
 		 *
-		 * @param array $attributes Array of attributes and their values to set.
+		 * @param null|array $attributes Array of attributes and their values to set.
 		 * @return void
 		 */
-		public function setAttributes(array $attributes = null) : void {
+		public function setAttributes(?array $attributes = null) : void {
 			if (!$this->active || $attributes === null) {
 				return;
 			}
@@ -829,14 +812,13 @@
 		}
 
 		/**
-		 * Stores a query that has been executed, it's arguments if available,
-		 * and increments the query counter.
+		 * Stores a query that has been executed, it's arguments if available, and increments the query counter.
 		 *
 		 * @param string $query The SQL statement that was executed.
-		 * @param array $arguments Possible collection of argument passed to statement.
+		 * @param null|array $arguments Possible collection of argument passed to statement.
 		 * @return void
 		 */
-		protected function storeQueryRecord(string $query, array $arguments = null) : void {
+		protected function storeQueryRecord(string $query, ?array $arguments = null) : void {
 			$this->queryCount++;
 			$this->queries[] = new PdoQuery($query, $arguments);
 
@@ -844,14 +826,13 @@
 		}
 
 		/**
-		 * Helper method to guard statements against being called when there
-		 * is no active database handle.
+		 * Helper method to guard statements against being called when there is no active database handle.
 		 *
 		 * @param callable $command The code to execute if the handle is active.
 		 * @param mixed $default Return value if the handle is inactive.
 		 * @return mixed
 		 */
-		protected function tryActiveCommand(callable $command, $default = null) {
+		protected function tryActiveCommand(callable $command, mixed $default = null) : mixed {
 			if ($this->active) {
 				return $command();
 			}

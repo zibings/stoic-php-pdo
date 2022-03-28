@@ -3,12 +3,11 @@
 	namespace Stoic\Pdo;
 
 	/**
-	 * Abstract base class that provides simplistic ORM
-	 * functionality via the PdoHelper wrapper and
-	 * without much fuss/overhead.
+	 * Abstract base class that provides simplistic ORM functionality via the PdoHelper wrapper and without much
+	 * fuss/overhead.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.3
+	 * @version 1.1.0
 	 */
 	abstract class StoicDbModel extends BaseDbModel {
 		/**
@@ -20,8 +19,7 @@
 
 
 		/**
-		 * Optional method to initialize an object
-		 * after the constructor has finished.
+		 * Optional method to initialize an object after the constructor has finished.
 		 *
 		 * @throws \InvalidArgumentException
 		 * @return void
