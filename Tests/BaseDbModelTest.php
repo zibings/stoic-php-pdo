@@ -453,9 +453,9 @@
 			self::assertEquals('SELECT ID, Name FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::SELECT));
 			self::assertEquals('SELECT ID, Name FROM Role', $role->generateClassQuery(BaseDbQueryTypes::SELECT, false));
 			self::assertEquals('UPDATE Role SET Name = :name WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE));
-			self::assertEquals('UPDATE Role SET Name = :name WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE, false));
+			self::assertEquals('UPDATE Role SET Name = :name', $role->generateClassQuery(BaseDbQueryTypes::UPDATE, false));
 			self::assertEquals('DELETE FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::DELETE));
-			self::assertEquals('DELETE FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::DELETE, false));
+			self::assertEquals('DELETE FROM Role', $role->generateClassQuery(BaseDbQueryTypes::DELETE, false));
 
 			return;
 		}

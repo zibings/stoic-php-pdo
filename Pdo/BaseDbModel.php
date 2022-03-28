@@ -434,7 +434,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to create " . $this->className . " automatically with...\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to create " . $this->className . " automatically with...\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 
@@ -539,7 +539,7 @@
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to run generated 'delete'..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to run generated 'delete'..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 				$ret->makeGood();
@@ -560,10 +560,10 @@
 		 * Attempts to generate a query string to be used elsewhere.  Optional parameter only affects SELECT queries.
 		 *
 		 * @param int|BaseDbQueryTypes $queryType Type of query to generate with class meta information.
-		 * @param bool $includeSelectPrimaries Determines if SELECT queries should also include the WHERE section of the query, defaults to true.
+		 * @param bool $includePrimaryWheres Determines if queries should also include the WHERE section with primary keys included, defaults to true.
 		 * @return string
 		 */
-		public function generateClassQuery(int|BaseDbQueryTypes $queryType, bool $includeSelectPrimaries = true) : string {
+		public function generateClassQuery(int|BaseDbQueryTypes $queryType, bool $includePrimaryWheres = true) : string {
 			$ret = '';
 			$queryType = EnumBase::tryGetEnum($queryType, BaseDbQueryTypes::class);
 
@@ -590,7 +590,7 @@
 
 			switch ($queryType->getValue()) {
 				case BaseDbQueryTypes::DELETE:
-					$ret = "DELETE FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
+					$ret = "DELETE FROM {$this->dbTable}";
 
 					break;
 				case BaseDbQueryTypes::INSERT:
@@ -600,15 +600,15 @@
 				case BaseDbQueryTypes::SELECT:
 					$ret = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($selectColumns)) . $this->getDbColumnSuffix() . " FROM {$this->dbTable}";
 
-					if ($includeSelectPrimaries) {
-						$ret .= " WHERE " . implode(' AND ', array_values($primaryStrings));
-					}
-
 					break;
 				case BaseDbQueryTypes::UPDATE:
-					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
+					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns));
 
 					break;
+			}
+
+			if (!$queryType->is(BaseDbQueryTypes::INSERT) && $includePrimaryWheres) {
+				$ret .= " WHERE " .implode(' AND ', array_values($primaryStrings));
 			}
 
 			return $ret;
@@ -624,8 +624,7 @@
 		}
 
 		/**
-		 * Retrieves the common column prefix character for the
-		 * database driver, if available.
+		 * Retrieves the common column prefix character for the database driver, if available.
 		 *
 		 * @codeCoverageIgnore
 		 * @return string
@@ -665,18 +664,16 @@
 		}
 
 		/**
-		 * Returns the currently set collection of database
-		 * columns/fields.
+		 * Returns the currently set collection of database columns/fields.
 		 *
 		 * @return BaseDbField[]
 		 */
-		public function getDbColumns() {
+		public function getDbColumns() : array {
 			return $this->dbFields;
 		}
 
 		/**
-		 * Retrieves the common column suffix character for the
-		 * database driver, if available.
+		 * Retrieves the common column suffix character for the database driver, if available.
 		 *
 		 * @codeCoverageIgnore
 		 * @return string
@@ -725,14 +722,13 @@
 		}
 
 		/**
-		 * Attempts to retrieve the DB value for
-		 * the given property.
+		 * Attempts to retrieve the DB value for the given property.
 		 *
 		 * @param string $property Name of property on class to retrieve.
 		 * @param BaseDbField $field Field information to use when formatting value.
 		 * @return array
 		 */
-		protected function getPropertyDbValue(string $property, BaseDbField $field) {
+		protected function getPropertyDbValue(string $property, BaseDbField $field) : array {
 			$ret = array(":{$property}", '', $field->type->getDbType());
 
 			if ($field->allowsNulls && $this->{$property} === null) {
@@ -773,7 +769,7 @@
 		 *
 		 * @return array
 		 */
-		public function jsonSerialize() {
+		public function jsonSerialize() : array {
 			return $this->toSerializableArray();
 		}
 
@@ -784,8 +780,11 @@
 		 * @return void
 		 */
 		protected function logErrors(ReturnHelper $ret) : void {
+			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+			$this->log->error("BaseDbModel error log originating from {FILE}:{LINE}", ['FILE' => $trace[0]['file'], 'LINE' => $trace[0]['line']]);
+
 			if ($ret->isBad() && $ret->hasMessages()) {
-				foreach (array_values($ret->getMessages()) as $message) {
+				foreach ($ret->getMessages() as $message) {
 					$this->log->error($message);
 				}
 			}
@@ -794,8 +793,7 @@
 		}
 
 		/**
-		 * Wraps the column name with the appropriate characters,
-		 * if available.
+		 * Wraps the column name with the appropriate characters, if available.
 		 *
 		 * @param string $column Column to wrap, if possible.
 		 * @return string
@@ -805,8 +803,7 @@
 		}
 
 		/**
-		 * Attempts to read an object from the
-		 * database.
+		 * Attempts to read an object from the database.
 		 *
 		 * @return ReturnHelper
 		 */
@@ -843,12 +840,12 @@
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
-				foreach (array_values($primaries) as $field) {
+				foreach ($primaries as $field) {
 					$stmt->bindValue($field[0], $field[1], $field[2]);
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to 'read' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to 'read' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$cmp = $stmt->execute();
 
@@ -880,18 +877,17 @@
 		}
 
 		/**
-		 * Attempts to set a database field in the current
-		 * object.
+		 * Attempts to set a database field in the current object.
 		 *
 		 * @param string $property Name of the class property this field corresponds to.
 		 * @param string $column Name of the database column.
-		 * @param integer $type Type of the database column.
-		 * @param boolean $isKey Whether or not this is part of the table key.
-		 * @param boolean $shouldInsert Whether or not this should be used during row creation.
-		 * @param boolean $shouldUpdate Whether or not this should be used during row updates.
-		 * @param boolean $allowsNulls Whether or not this should be allowed to be null.
-		 * @param boolean $autoIncrement Whether or not this receives an AUTO_INCREMENT value after insertion.
-		 * @throws \InvalidArgumentException Thrown if the property already has an assigned database field.
+		 * @param int $type Type of the database column.
+		 * @param bool $isKey Whether this is part of the table key.
+		 * @param bool $shouldInsert Whether this should be used during row creation.
+		 * @param bool $shouldUpdate Whether this should be used during row updates.
+		 * @param bool $allowsNulls Whether this should be allowed to be null.
+		 * @param bool $autoIncrement Whether this receives an AUTO_INCREMENT value after insertion.
+		 * @throws \InvalidArgumentException
 		 * @return void
 		 */
 		protected function setColumn(string $property, string $column, int $type, bool $isKey, bool $shouldInsert, bool $shouldUpdate, bool $allowsNulls = false, bool $autoIncrement = false) : void {
@@ -910,13 +906,14 @@
 		 * @param string $property Name of property on class to set.
 		 * @param BaseDbField $field Field information to use when formatting value.
 		 * @param mixed $value Value to set class property to.
+		 * @throws \Exception
 		 * @return void
 		 */
-		protected function setPropertyDbValue(string $property, BaseDbField $field, $value) : void {
+		protected function setPropertyDbValue(string $property, BaseDbField $field, mixed $value) : void {
 			if ($field->type->is(BaseDbTypes::DATETIME) && $value !== null) {
 				$this->{$property} = new \DateTimeImmutable($value, new \DateTimeZone('UTC'));
 			} else if ($field->type->is(BaseDbTypes::BOOLEAN)) {
-				$this->{$property} = ($value) ? true : false;
+				$this->{$property} = (bool)$value;
 			} else if ($field->type->is(BaseDbTypes::STRING) && $this->{$property} instanceof EnumBase) {
 				$enumClass = get_class($this->{$property});
 				$this->{$property} = $enumClass::fromString($value);
@@ -931,8 +928,7 @@
 		}
 
 		/**
-		 * Sets the database table name for this
-		 * object.
+		 * Sets the database table name for this object.
 		 *
 		 * @param string $name Value of table name.
 		 * @return void
@@ -948,7 +944,7 @@
 		 *
 		 * @return array
 		 */
-		public function toArray() {
+		public function toArray() : array {
 			$ret = [];
 
 			if (count($this->dbFields) > 0) {
@@ -984,8 +980,7 @@
 		}
 
 		/**
-		 * Attempts to update an object in the
-		 * database.
+		 * Attempts to update an object in the database.
 		 *
 		 * @return ReturnHelper
 		 */
@@ -1030,17 +1025,17 @@
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
-				foreach (array_values($primaries) as $field) {
+				foreach ($primaries as $field) {
 					$stmt->bindValue($field[0], $field[1], $field[2]);
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				foreach (array_values($updateColumns) as $field) {
+				foreach ($updateColumns as $field) {
 					$stmt->bindValue($field[0], $field[1], $field[2]);
 					$paramOutput[$field[0]] = $field[1];
 				}
 
-				$this->log->info("Attempting to 'update' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => $paramOutput));
+				$this->log->info("Attempting to 'update' {$this->className}..\n\tQuery: {SQL}\n\tParams: {PARAMS}", array('SQL' => $sql, 'PARAMS' => json_encode($paramOutput)));
 
 				$stmt->execute();
 				$ret->makeGood();

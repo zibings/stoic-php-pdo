@@ -30,7 +30,7 @@
 			parent::__initialize();
 
 			if (!($this->db instanceof PdoHelper)) {
-				throw new \InvalidArgumentException("StoicDbModel and derived classes require a PdoHelper");
+				$this->db = new PdoHelper('', null, null, null, $this->db);
 			}
 
 			return;
