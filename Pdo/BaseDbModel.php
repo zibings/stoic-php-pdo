@@ -8,11 +8,10 @@
 	use Stoic\Utilities\StringHelper;
 
 	/**
-	 * Exception thrown if a property isn't found during
-	 * calls to BaseDbModel::fromArray().
+	 * Exception thrown if a property isn't found during calls to BaseDbModel::fromArray().
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class ClassPropertyNotFoundException extends \Exception { }
 
@@ -20,7 +19,7 @@
 	 * Represents a database field type.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class BaseDbTypes extends EnumBase {
 		const INTEGER = 0;
@@ -31,8 +30,7 @@
 
 
 		/**
-		 * Retreives the PDO parameter type to be used with a
-		 * column of this type.
+		 * Retrieves the PDO parameter type to be used with a column of this type.
 		 *
 		 * @return null|integer
 		 */
@@ -60,11 +58,10 @@
 	}
 
 	/**
-	 * Represents the different types of queries that can
-	 * be generated for a BaseDbModel.
+	 * Represents the different types of queries that can be generated for a BaseDbModel.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class BaseDbQueryTypes extends EnumBase {
 		const INVALID = 0;
@@ -75,74 +72,66 @@
 	}
 
 	/**
-	 * Represents a single database field
-	 * in a BaseDbModel.
+	 * Represents a single database field in a BaseDbModel.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.1
+	 * @version 1.1.0
 	 */
 	class BaseDbField {
 		/**
-		 * Whether or not this field can be null
-		 * when used in a query.
+		 * Whether this field can be null when used in a query.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
-		public $allowsNulls;
+		public bool $allowsNulls;
 		/**
-		 * Name of the database column for
-		 * this field.
+		 * Name of the database column for this field.
 		 *
 		 * @var StringHelper
 		 */
-		public $column;
+		public StringHelper $column;
 		/**
-		 * Whether or not the field receives an
-		 * AUTO_INCREMENT value upon insertion.
+		 * Whether the field receives an AUTO_INCREMENT value upon insertion.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
-		public $autoIncrement;
+		public bool $autoIncrement;
 		/**
 		 * The database type for this field.
 		 *
 		 * @var BaseDbTypes
 		 */
-		public $type;
+		public BaseDbTypes $type;
 		/**
-		 * Whether or not this field is the
-		 * key for the table.
+		 * Whether this field is the key for the table.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
-		public $isKey;
+		public bool $isKey;
 		/**
-		 * Whether or not to use this field
-		 * during row creation.
+		 * Whether to use this field during row creation.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
-		public $shouldInsert;
+		public bool $shouldInsert;
 		/**
-		 * Whether or not to use this field
-		 * during row updates.
+		 * Whether to use this field during row updates.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
-		public $shouldUpdate;
+		public bool $shouldUpdate;
 
 
 		/**
-		 * Instantiates a BaseDbField object with the
-		 * given values.
+		 * Instantiates a BaseDbField object with the given values.
 		 *
 		 * @param string $column Name of the database column.
 		 * @param integer $type Type of the database column.
-		 * @param boolean $isKey Whether or not this is part of the table key.
-		 * @param boolean $shouldInsert Whether or not this should be used during row creation.
-		 * @param boolean $shouldUpdate Whether or not this should be used during row updates.
-		 * @param boolean $allowsNulls Whether or not this should be allowed to be null.
-		 * @param boolean $autoIncrement Whether or not this receives an AUTO_INCREMENT value after insertion.
+		 * @param boolean $isKey Whether this is part of the table key.
+		 * @param boolean $shouldInsert Whether this should be used during row creation.
+		 * @param boolean $shouldUpdate Whether this should be used during row updates.
+		 * @param boolean $allowsNulls Whether this should be allowed to be null.
+		 * @param boolean $autoIncrement Whether this receives an AUTO_INCREMENT value after insertion.
 		 */
 		public function __construct(string $column, int $type, bool $isKey, bool $shouldInsert, bool $shouldUpdate, bool $allowsNulls = false, bool $autoIncrement = false) {
 			$this->allowsNulls = $allowsNulls;
@@ -166,34 +155,30 @@
 	}
 
 	/**
-	 * Abstract base class that provides simplistic ORM
-	 * functionality without much fuss/overhead.
+	 * Abstract base class that provides simplistic ORM functionality without much fuss/overhead.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.3
+	 * @version 1.1.0
 	 */
 	abstract class BaseDbModel extends BaseDbClass implements \JsonSerializable {
 		/**
 		 * Internal storage for guessed driver type.
 		 *
-		 * @var PdoDrivers
+		 * @var null|PdoDrivers
 		 */
-		protected $dbDriver = null;
+		protected ?PdoDrivers $dbDriver = null;
 		/**
-		 * Optional collection of BaseDbField
-		 * objects representing object
-		 * properties.
+		 * Optional collection of BaseDbField objects representing object properties.
 		 *
 		 * @var BaseDbField[]
 		 */
-		protected $dbFields = [];
+		protected array $dbFields = [];
 		/**
-		 * Name of the database table this class
-		 * will query against.
+		 * Name of the database table this class will query against.
 		 *
-		 * @var StringHelper
+		 * @var null|StringHelper
 		 */
-		protected $dbTable = null;
+		protected ?StringHelper $dbTable = null;
 
 
 		/**
@@ -201,7 +186,7 @@
 		 *
 		 * @var array
 		 */
-		protected static $properties = [];
+		protected static array $properties = [];
 
 
 		/**
@@ -209,13 +194,12 @@
 		 *
 		 * @param array $source Array to use as source for object properties.
 		 * @param \PDO $db PDO connection resource for use by object.
-		 * @param Logger $log Optional Logger instance for use by object, new instance created if not supplied.
-		 * @param array $exclusions Optional array of properties to exclude when comparing property counts.
-		 * @throws \InvalidArgumentException Thrown if provided with empty or incorrectly sized source array.
-		 * @throws ClassPropertyNotFoundException Thrown if a source array element doesn't find a suitable class property.
-		 * @return object
+		 * @param null|Logger $log Optional Logger instance for use by object, new instance created if not supplied.
+		 * @param null|array $exclusions Optional array of properties to exclude when comparing property counts.
+		 * @throws \InvalidArgumentException|ClassPropertyNotFoundException
+		 * @return static
 		 */
-		public static function fromArray(array $source, \PDO $db, Logger $log = null, array $exclusions = null) {
+		public static function fromArray(array $source, \PDO $db, ?Logger $log = null, ?array $exclusions = null) : static {
 			$className = get_called_class();
 
 			if (count($source) < 1) {
@@ -226,7 +210,7 @@
 			$baseVars = static::$properties['BaseDbModel'];
 
 			if ($exclusions !== null) {
-				foreach (array_values($exclusions) as $ex) {
+				foreach ($exclusions as $ex) {
 					$baseVars[$ex] = true;
 				}
 			}
@@ -272,8 +256,7 @@
 		}
 
 		/**
-		 * Static method to ensure class properties have been setup in the
-		 * cache.
+		 * Static method to ensure class properties have been set up in the cache.
 		 *
 		 * @return void
 		 */
@@ -293,42 +276,38 @@
 
 
 		/**
-		 * Optional method to determine if a 'create'
-		 * action can proceed.
+		 * Optional method to determine if a 'create' action can proceed.
 		 *
-		 * @return boolean
+		 * @return bool|ReturnHelper
 		 */
-		protected function __canCreate() {
+		protected function __canCreate() : bool|ReturnHelper {
 			return true;
 		}
 
 		/**
-		 * Optional method to determine if a 'delete'
-		 * action can proceed.
+		 * Optional method to determine if a 'delete' action can proceed.
 		 *
-		 * @return boolean
+		 * @return bool|ReturnHelper
 		 */
-		protected function __canDelete() {
+		protected function __canDelete() : bool|ReturnHelper {
 			return true;
 		}
 
 		/**
-		 * Optional method to determine if a 'read'
-		 * action can proceed.
+		 * Optional method to determine if a 'read' action can proceed.
 		 *
-		 * @return boolean
+		 * @return bool|ReturnHelper
 		 */
-		protected function __canRead() {
+		protected function __canRead() : bool|ReturnHelper {
 			return true;
 		}
 
 		/**
-		 * Optional method to determine if an 'update'
-		 * action can proceed.
+		 * Optional method to determine if an 'update' action can proceed.
 		 *
-		 * @return boolean
+		 * @return bool|ReturnHelper
 		 */
-		protected function __canUpdate() {
+		protected function __canUpdate() : bool|ReturnHelper {
 			return true;
 		}
 
@@ -338,7 +317,7 @@
 		 * @param string $name Name of the property to attempt retrieving.
 		 * @return mixed
 		 */
-		public function __get(string $name) {
+		public function __get(string $name) : mixed {
 			if (array_key_exists($name, $this->dbFields) !== false) {
 				if ($this->dbFields[$name]->type->is(BaseDbTypes::STRING) && $this->{$name} instanceof StringHelper) {
 					return $this->{$name}->data();
@@ -355,8 +334,7 @@
 		}
 
 		/**
-		 * Optional method to initialize an object
-		 * after the constructor has finished.
+		 * Optional method to initialize an object after the constructor has finished.
 		 *
 		 * @return void
 		 */
@@ -374,9 +352,10 @@
 		 *
 		 * @param string $name Name of property to attempt setting.
 		 * @param mixed $value Value to set property to if it exists.
+		 * @throws \Exception
 		 * @return void
 		 */
-		public function __set(string $name, $value) : void {
+		public function __set(string $name, mixed $value) : void {
 			if (array_key_exists($name, $this->dbFields) !== false) {
 				$field = $this->dbFields[$name];
 
@@ -402,8 +381,7 @@
 		}
 
 		/**
-		 * Optional method to initialize a model after the constructor
-		 * has finished.
+		 * Optional method to initialize a model after the constructor has finished.
 		 *
 		 * @return void
 		 */
@@ -412,8 +390,7 @@
 		}
 
 		/**
-		 * Attempts to create a new object in
-		 * the database.
+		 * Attempts to create a new object in the database.
 		 *
 		 * @return ReturnHelper
 		 */
@@ -452,7 +429,7 @@
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
-				foreach (array_values($insertFields) as $field) {
+				foreach ($insertFields as $field) {
 					$stmt->bindValue($field[0], $field[1], $field[2]);
 					$paramOutput[$field[0]] = $field[1];
 				}
@@ -481,30 +458,25 @@
 		}
 
 		/**
-		 * Determines if a response from a proceed-check method
-		 * should stop an automatic query from being executed.
+		 * Determines if a response from a proceed-check method should stop an automatic query from being executed.
 		 *
-		 * If a ReturnHelper is provided, all messages will be
-		 * placed in error logs in the result of a failed check.
+		 * If a ReturnHelper is provided, all messages will be placed in error logs in the result of a failed check.
 		 *
 		 * @param string $operation Name of operation that is about to be performed.
 		 * @param mixed $value Value from proceed-check, likely boolean or ReturnHelper.
 		 * @param null|ReturnHelper $ret Optional ReturnHelper to append message onto.
-		 * @return boolean
+		 * @return bool
 		 */
-		protected function canProceed(string $operation, $value, ?ReturnHelper &$ret = null) : bool {
+		protected function canProceed(string $operation, mixed $value, ?ReturnHelper &$ret = null) : bool {
 			if ($value instanceof ReturnHelper) {
 				if ($value->isGood()) {
 					return true;
 				}
 
 				if ($value->hasMessages()) {
-					foreach (array_values($value->getMessages()) as $msg) {
+					foreach ($value->getMessages() as $msg) {
 						$this->log->error($msg);
-
-						if ($ret !== null) {
-							$ret->addMessage($msg);
-						}
+						$ret?->addMessage($msg);
 					}
 				}
 
@@ -519,10 +491,7 @@
 
 			if (count($this->dbFields) < 1) {
 				$this->log->error("Can't perform generated '{$operation}' on {$this->className} without registered fields");
-
-				if ($ret !== null) {
-					$ret->addMessage("Can't perform generated '{$operation}' on {$this->className} without registered fields");
-				}
+				$ret?->addMessage("Can't perform generated '{$operation}' on {$this->className} without registered fields");
 
 				return false;
 			}
@@ -531,8 +500,7 @@
 		}
 
 		/**
-		 * Attempts to delete an object in the
-		 * database.
+		 * Attempts to delete an object in the database.
 		 *
 		 * @return ReturnHelper
 		 */
@@ -566,7 +534,7 @@
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
-				foreach (array_values($primaries) as $field) {
+				foreach ($primaries as $field) {
 					$stmt->bindValue($field[0], $field[1], $field[2]);
 					$paramOutput[$field[0]] = $field[1];
 				}
@@ -589,14 +557,13 @@
 		}
 
 		/**
-		 * Attempts to generate a query string to be used elsewhere.  Optional parameter
-		 * only affects SELECT queries.
+		 * Attempts to generate a query string to be used elsewhere.  Optional parameter only affects SELECT queries.
 		 *
-		 * @param integer|BaseDbQueryTypes $queryType Type of query to generate with class meta information.
-		 * @param boolean $includeSelectPrimaries Determines if SELECT queries should also include the WHERE section of the query, defaults to true.
+		 * @param int|BaseDbQueryTypes $queryType Type of query to generate with class meta information.
+		 * @param bool $includeSelectPrimaries Determines if SELECT queries should also include the WHERE section of the query, defaults to true.
 		 * @return string
 		 */
-		public function generateClassQuery($queryType, bool $includeSelectPrimaries = true) : string {
+		public function generateClassQuery(int|BaseDbQueryTypes $queryType, bool $includeSelectPrimaries = true) : string {
 			$ret = '';
 			$queryType = EnumBase::tryGetEnum($queryType, BaseDbQueryTypes::class);
 
