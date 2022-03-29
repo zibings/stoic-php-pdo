@@ -6,6 +6,7 @@
 	 * Abstract base class that provides simplistic ORM functionality via the PdoHelper wrapper and without much
 	 * fuss/overhead.
 	 *
+	 * @codeCoverageIgnore
 	 * @package Stoic\Pdo
 	 * @version 1.1.0
 	 */

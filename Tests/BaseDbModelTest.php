@@ -37,12 +37,16 @@
 	class BasicTestDbClass extends BaseDbModel {
 		protected $test;
 		protected $test2;
+		protected $missingEnum;
 
 
 		protected function __setupModel() : void {
+			$this->missingEnum = new TestEnum(1);
+
 			$this->setTableName('TestTable');
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, true, true, true);
 			$this->setColumn('test2', 'test2', BaseDbTypes::STRING, false, true, true, true);
+			$this->setColumn('missingEnum', 'missingEnum', BaseDbTypes::INTEGER, false, true, true);
 
 			return;
 		}
@@ -208,7 +212,7 @@
 			$this->setColumn('intEnum', 'IntEnum', BaseDbTypes::INTEGER, false, true, true);
 			$this->setColumn('stringEnum', 'StringEnum', BaseDbTypes::STRING, false, true, true);
 
-			$this->intEnum = new TestEnum(1);
+			$this->intEnum    = new TestEnum(1);
 			$this->stringEnum = TestEnum::fromString('VALUE_ONE');
 
 			return;
@@ -356,6 +360,7 @@
 			$cls->test = 1;
 			$cls->test2 = 'testing';
 			$cls->missing = 2;
+			$cls->missingEnum = 2;
 
 			self::assertEquals(1, $cls->test);
 			self::assertEquals('testing', $cls->test2);
@@ -441,6 +446,13 @@
 
 			self::assertEquals('ID', $dbColumns['id']->column->data());
 			self::assertEquals('Name', $dbColumns['name']->column->data());
+
+			self::assertEquals('Role', $role->getDbTableName());
+			self::assertEquals('{"id":0,"name":null}', json_encode($role));
+
+			$cdbc = new CompleteDbClass(new Pdo());
+			$cdbc->date = new \DateTime('2000-12-31 11:59:59');
+			self::assertEquals('{"id":null,"name":null,"date":"2000-12-31 11:59:59","active":null,"intEnum":1,"stringEnum":1}', json_encode($cdbc));
 
 			return;
 		}

@@ -530,10 +530,6 @@
 					return 0;
 				}
 
-				if ($this->instance !== null) {
-					return $this->instance->exec(static::$storedQueries[$this->driverKey][$key]->query);
-				}
-
 				return $this->exec(static::$storedQueries[$this->driverKey][$key]->query);
 			}, 0);
 		}
@@ -597,6 +593,10 @@
 		 */
 		public function inTransaction() : bool {
 			return $this->tryActiveCommand(function () {
+				if ($this->instance !== null) {
+					return $this->instance->inTransaction();
+				}
+
 				return parent::inTransaction();
 			}, false);
 		}
@@ -618,6 +618,10 @@
 		 */
 		public function lastInsertId(?string $seqname = null) : mixed {
 			return $this->tryActiveCommand(function () use ($seqname) {
+				if ($this->instance !== null) {
+					return $this->instance->lastInsertId($seqname);
+				}
+
 				return parent::lastInsertId($seqname);
 			}, '');
 		}
@@ -636,10 +640,10 @@
 				try {
 					if ($options !== null) {
 						// @codeCoverageIgnoreStart
-						$ret = parent::prepare($statement, $options);
+						$ret = ($this->instance !== null) ? $this->instance->prepare($statement, $options) : parent::prepare($statement, $options);
 						// @codeCoverageIgnoreEnd
 					} else {
-						$ret = parent::prepare($statement);
+						$ret = ($this->instance !== null) ? $this->instance->prepare($statement) : parent::prepare($statement);
 					}
 
 					$this->storeQueryRecord($statement);
@@ -686,10 +690,10 @@
 				try {
 					if ($options !== null) {
 						// @codeCoverageIgnoreStart
-						$stmt = parent::prepare($statement, $options);
+						$stmt = ($this->instance !== null) ? $this->instance->prepare($statement, $options) : parent::prepare($statement, $options);
 						// @codeCoverageIgnoreEnd
 					} else {
-						$stmt = parent::prepare($statement);
+						$stmt = ($this->instance !== null) ? $this->instance->prepare($statement) : parent::prepare($statement);
 					}
 
 					foreach ($args as $argSet) {
@@ -722,7 +726,7 @@
 				$ret = null;
 
 				try {
-					$ret = parent::query($statement, $fetchMode, ...$fetchModeArgs);
+					$ret = ($this->instance !== null) ? $this->instance->query($statement, $fetchMode, ...$fetchModeArgs) : parent::query($statement, $fetchMode, ...$fetchModeArgs);
 					$this->storeQueryRecord($statement);
 				// @codeCoverageIgnoreStart
 				} catch (\PDOException $ex) {
@@ -762,10 +766,10 @@
 		public function quote(string $string, ?int $paramtype = null) : string {
 			return $this->tryActiveCommand(function () use ($string, $paramtype) {
 				if ($paramtype > -1) {
-					return parent::quote($string, $paramtype);
+					return ($this->instance !== null) ? $this->instance->quote($string, $paramtype) : parent::quote($string, $paramtype);
 				}
 
-				return parent::quote($string);
+				return ($this->instance !== null) ? $this->instance->quote($string) : parent::quote($string);
 			}, '');
 		}
 		
@@ -776,7 +780,7 @@
 		 */
 		public function rollback() : bool {
 			return $this->tryActiveCommand(function () {
-				return parent::rollBack();
+				return ($this->instance !== null) ? $this->instance->rollBack() : parent::rollBack();
 			}, false);
 		}
 
@@ -789,7 +793,7 @@
 		 */
 		public function setAttribute(int $attribute, mixed $value) : bool {
 			return $this->tryActiveCommand(function () use ($attribute, $value) {
-				return parent::setAttribute($attribute, $value);
+				return ($this->instance !== null) ? $this->instance->setAttribute($attribute, $value) : parent::setAttribute($attribute, $value);
 			}, false);
 		}
 

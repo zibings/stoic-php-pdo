@@ -805,6 +805,7 @@
 		/**
 		 * Attempts to read an object from the database.
 		 *
+		 * @throws \Exception
 		 * @return ReturnHelper
 		 */
 		public function read() : ReturnHelper {

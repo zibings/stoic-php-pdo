@@ -8,6 +8,7 @@
 	 * Abstract base class that ensures the availability of a PdoHelper instance, Logger instance, and some basic meta
 	 * information on the called class.
 	 *
+	 * @codeCoverageIgnore
 	 * @package Stoic\Pdo
 	 * @version 1.1.0
 	 */
