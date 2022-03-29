@@ -37,12 +37,16 @@
 	class BasicTestDbClass extends BaseDbModel {
 		protected $test;
 		protected $test2;
+		protected $missingEnum;
 
 
 		protected function __setupModel() : void {
+			$this->missingEnum = new TestEnum(1);
+
 			$this->setTableName('TestTable');
 			$this->setColumn('test', 'test', BaseDbTypes::INTEGER, true, true, true);
 			$this->setColumn('test2', 'test2', BaseDbTypes::STRING, false, true, true, true);
+			$this->setColumn('missingEnum', 'missingEnum', BaseDbTypes::INTEGER, false, true, true);
 
 			return;
 		}
@@ -88,7 +92,7 @@
 		public $name;
 
 
-		public static function fromId($id, \PDO $db, Logger $log = null) {
+		public static function fromId($id, \PDO $db, Logger $log = null) : Role {
 			$ret = new Role($db, $log);
 			$ret->id = intval($id);
 			
@@ -100,8 +104,8 @@
 		}
 
 
-		protected function __canCreate() {
-			if ($this->id > 0 || empty($this->name) || $this->name === null) {
+		protected function __canCreate() : bool|ReturnHelper {
+			if ($this->id > 0 || empty($this->name)) {
 				return false;
 			}
 
@@ -122,7 +126,7 @@
 			return true;
 		}
 
-		protected function __canDelete() {
+		protected function __canDelete() : bool|ReturnHelper {
 			if ($this->id < 1) {
 				return false;
 			}
@@ -130,7 +134,7 @@
 			return true;
 		}
 
-		protected function __canRead() {
+		protected function __canRead() : bool|ReturnHelper {
 			if ($this->id < 1) {
 				return false;
 			}
@@ -138,11 +142,11 @@
 			return true;
 		}
 
-		protected function __canUpdate() {
+		protected function __canUpdate() : bool|ReturnHelper {
 			$ret = new ReturnHelper();
 			$ret->makeBad();
 
-			if ($this->id < 1 || empty($this->name) || $this->name === null) {
+			if ($this->id < 1 || empty($this->name)) {
 				$ret->addMessage("Invalid name or identifier for update");
 
 				return $ret;
@@ -151,7 +155,7 @@
 			try {
 				$stmt = $this->db->prepare("SELECT COUNT(*) FROM Role WHERE Name = :name AND ID <> :id");
 				$stmt->bindValue(':name', $this->name, \PDO::PARAM_STR);
-				$stmt->bindValue(':id', $this->id, \PDO::PARAM_INT);
+				$stmt->bindValue(':id', $this->id);
 				$stmt->execute();
 
 				if ($stmt->fetch()['COUNT(*)'] > 0) {
@@ -208,7 +212,7 @@
 			$this->setColumn('intEnum', 'IntEnum', BaseDbTypes::INTEGER, false, true, true);
 			$this->setColumn('stringEnum', 'StringEnum', BaseDbTypes::STRING, false, true, true);
 
-			$this->intEnum = new TestEnum(1);
+			$this->intEnum    = new TestEnum(1);
 			$this->stringEnum = TestEnum::fromString('VALUE_ONE');
 
 			return;
@@ -275,14 +279,14 @@
 		public function test_FromArray() {
 			try {
 				new BadTestDbClass(new Pdo());
-				self::assertTrue(false);
+				self::fail();
 			} catch (\InvalidArgumentException $ex) {
 				self::assertEquals("Cannot overwrite a field that has already been set", $ex->getMessage());
 			}
 
 			try {
 				Role::fromArray(['id' => 1, 'roleName' => 'Testing'], new Pdo());
-				self::assertTrue(false);
+				self::fail();
 			} catch (ClassPropertyNotFoundException $ex) {
 				self::assertEquals("Couldn't find match for roleName index while populating Stoic\Tests\Utilities\Role", $ex->getMessage());
 			}
@@ -312,14 +316,14 @@
 		public function test_BaseDbField() {
 			try {
 				new BaseDbField('', BaseDbTypes::INTEGER, false, false, false);
-				self::assertTrue(false);
+				self::fail();
 			} catch (\InvalidArgumentException $ex) {
 				self::assertEquals("Cannot create a BaseDbField object with no column name", $ex->getMessage());
 			}
 
 			try {
 				new BaseDbField('test', -1, false, false, false);
-				self::assertTrue(false);
+				self::fail();
 			} catch (\InvalidArgumentException $ex) {
 				self::assertEquals("Cannot create a BaseDbField object with an invalid BaseDbTypes value", $ex->getMessage());
 			}
@@ -330,14 +334,14 @@
 		public function test_BaseDbModel_FromArray() {
 			try {
 				FromArrayTestClass1::fromArray(array(), new Pdo());
-				self::assertTrue(false);
+				self::fail();
 			} catch (\InvalidArgumentException $ex) {
 				self::assertEquals("Cannot populate Stoic\Tests\Utilities\FromArrayTestClass1 from empty source array", $ex->getMessage());
 			}
 
 			try {
 				FromArrayTestClass1::fromArray(array('test' => 1, 'extra' => 2), new Pdo(), new Logger(), ['className']);
-				self::assertTrue(false);
+				self::fail();
 			} catch (\InvalidArgumentException $ex) {
 				self::assertEquals("Cannot populate Stoic\Tests\Utilities\FromArrayTestClass1 from array, variable count mismatch (class: 1, source: 2)", $ex->getMessage());
 			}
@@ -356,6 +360,7 @@
 			$cls->test = 1;
 			$cls->test2 = 'testing';
 			$cls->missing = 2;
+			$cls->missingEnum = 2;
 
 			self::assertEquals(1, $cls->test);
 			self::assertEquals('testing', $cls->test2);
@@ -441,6 +446,13 @@
 
 			self::assertEquals('ID', $dbColumns['id']->column->data());
 			self::assertEquals('Name', $dbColumns['name']->column->data());
+
+			self::assertEquals('Role', $role->getDbTableName());
+			self::assertEquals('{"id":0,"name":null}', json_encode($role));
+
+			$cdbc = new CompleteDbClass(new Pdo());
+			$cdbc->date = new \DateTime('2000-12-31 11:59:59');
+			self::assertEquals('{"id":null,"name":null,"date":"2000-12-31 11:59:59","active":null,"intEnum":1,"stringEnum":1}', json_encode($cdbc));
 
 			return;
 		}

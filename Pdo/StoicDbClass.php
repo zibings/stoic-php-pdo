@@ -5,12 +5,12 @@
 	use Stoic\Log\Logger;
 
 	/**
-	 * Abstract base class that ensures the availability
-	 * of a PdoHelper instance, Logger instance, and
-	 * some basic meta information on the called class.
+	 * Abstract base class that ensures the availability of a PdoHelper instance, Logger instance, and some basic meta
+	 * information on the called class.
 	 *
+	 * @codeCoverageIgnore
 	 * @package Stoic\Pdo
-	 * @version 1.0.3
+	 * @version 1.1.0
 	 */
 	abstract class StoicDbClass extends BaseDbClass {
 		/**
@@ -25,10 +25,10 @@
 		 * Instantiates a new StoicDbClass object with the required dependencies.
 		 *
 		 * @param \PDO $db PDO instance for use by object.
-		 * @param Logger $log Logger instance for use by object, defaults to new instance.
+		 * @param null|Logger $log Logger instance for use by object, defaults to new instance.
 		 * @throws \InvalidArgumentException
 		 */
-		public function __construct(\PDO $db, $log = null) {
+		public function __construct(\PDO $db, ?Logger $log = null) {
 			parent::__construct($db, $log);
 
 			if (!($db instanceof PdoHelper)) {

@@ -6,48 +6,46 @@
 	use Stoic\Utilities\ReturnHelper;
 
 	/**
-	 * Abstract base class that ensures the availability
-	 * of a PDO instance, Logger instance, and some basic
-	 * meta information on the called class.
+	 * Abstract base class that ensures the availability of a PDO instance, Logger instance, and some basic meta
+	 * information on the called class.
 	 *
 	 * @package Stoic\Pdo
-	 * @version 1.0.3
+	 * @version 1.1.0
 	 */
 	abstract class BaseDbClass {
 		/**
 		 * Fully qualified current class name.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		protected $className = null;
+		protected ?string $className = null;
 		/**
 		 * Internal PDO instance.
 		 *
-		 * @var \PDO
+		 * @var null|\PDO
 		 */
 		protected $db = null;
 		/**
 		 * Internal Logger instance.
 		 *
-		 * @var \Stoic\Log\Logger
+		 * @var null|\Stoic\Log\Logger
 		 */
-		protected $log = null;
+		protected ?Logger $log = null;
 		/**
-		 * Short (non-qualified) current class
-		 * name.
+		 * Short (non-qualified) current class name.
 		 *
-		 * @var string
+		 * @var null|string
 		 */
-		protected $shortClassName = null;
+		protected ?string $shortClassName = null;
 
 
 		/**
 		 * Instantiates a new BaseDbClass object with the required dependencies.
 		 *
 		 * @param \PDO $db PDO instance for use by object.
-		 * @param Logger $log Logger instance for use by object, defaults to new instance.
+		 * @param null|Logger $log Logger instance for use by object, defaults to new instance.
 		 */
-		public function __construct(\PDO $db, Logger $log = null) {
+		public function __construct(\PDO $db, ?Logger $log = null) {
 			$this->db = $db;
 			$this->log = $log ?? new Logger();
 			$this->className = get_called_class();
@@ -59,8 +57,7 @@
 		}
 
 		/**
-		 * Optional method to initialize an object after the constructor has been
-		 * called.
+		 * Optional method to initialize an object after the constructor has been called.
 		 *
 		 * @return void
 		 */
@@ -74,7 +71,7 @@
 		 * @param ReturnHelper $rh ReturnHelper instance that can contain messages for logging.
 		 * @param string $default Default log message if ReturnHelper instance contains no messages.
 		 * @param string $level Optional LogLevel string, defaults to 'error'.
-		 * @throws \InvalidArgumentException Thrown if empty default message provided.
+		 * @throws \InvalidArgumentException
 		 * @return void
 		 */
 		protected function logReturnHelperMessages(ReturnHelper $rh, string $default, string $level = 'error') : void {
@@ -83,7 +80,7 @@
 			}
 
 			if ($rh->hasMessages()) {
-				foreach (array_values($rh->getMessages()) as $msg) {
+				foreach ($rh->getMessages() as $msg) {
 					$this->log->log($level, $msg);
 				}
 			} else {
@@ -94,15 +91,14 @@
 		}
 
 		/**
-		 * Method to perform common wrapping of PDO code blocks in \PDOException
-		 * catch and prefix errors with the given message.  Returns any value(s)
-		 * returned by the callable code block.
+		 * Method to perform common wrapping of PDO code blocks in \PDOException catch and prefix errors with the given
+		 * message.  Returns any value(s) returned by the callable code block.
 		 *
 		 * @param callable $callable Block of code to execute and guard against PDOExceptions.
 		 * @param string $errorPrefix String prefix to use when logging exception messages.
 		 * @return mixed
 		 */
-		protected function tryPdoExcept(callable $callable, string $errorPrefix) {
+		protected function tryPdoExcept(callable $callable, string $errorPrefix) : mixed {
 			try {
 				return $callable();
 			} catch (\PDOException $ex) {

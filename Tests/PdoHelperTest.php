@@ -9,16 +9,16 @@
 	use Stoic\Pdo\PdoError;
 
 	class PdoHelperTestable extends PdoHelper {
-		public static function getStoredQueries() {
+		public static function getStoredQueries() : array {
 			return static::$storedQueries;
 		}
 	}
 
 	class PdoHelperTest extends TestCase {
-		protected static $hasSqlite = false;
+		protected static bool $hasSqlite = false;
 
 		public static function setUpBeforeClass() : void {
-			if (array_search('sqlite', \PDO::getAvailableDrivers()) !== false) {
+			if (in_array('sqlite', \PDO::getAvailableDrivers())) {
 				static::$hasSqlite = true;
 			}
 
@@ -105,7 +105,22 @@
 
 				self::assertTrue(true);
 			} catch (\PDOException $ex) {
-				self::assertFalse(true);
+				self::fail();
+			}
+
+			try {
+				$db = new PdoHelper('', null, null, null, new \PDO('sqlite::memory:'));
+				$db->beginTransaction();
+				$db->execStored('sq_test_4');
+				self::assertTrue($db->inTransaction());
+				$db->rollback();
+				$db->beginTransaction();
+				$db->execStored('sq_test_4');
+				$db->commit();
+
+				self::assertTrue(true);
+			} catch (\PDOException $ex) {
+				self::fail();
 			}
 
 			return;
@@ -126,13 +141,33 @@
 				$db->execStored('sq_test_4');
 				$db->execStored('sq_test_4');
 
-				self::assertTrue(false);
+				self::fail();
 			} catch (\PDOException $ex) {
 				self::assertEquals('SQLSTATE[HY000]: General error: 1 table User already exists', $ex->getMessage());
 				self::assertEquals('HY000', $db->errorCode());
 				self::assertEquals('["HY000",1,"table User already exists"]', json_encode($db->errorInfo()));
-				self::assertEquals(1, count($db->getErrors()));
-				self::assertEquals(1, count($db->getQueries()));
+				self::assertCount(1, $db->getErrors());
+				self::assertCount(1, $db->getQueries());
+				self::assertEquals(1, $db->getQueryCount());
+			}
+
+			self::assertEquals(0, $db->execStored('sq_test_5'));
+
+			$db = new PdoHelper('', null, null, null, new \PDO('sqlite::memory:'));
+			$db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+			self::assertEquals(\PDO::ERRMODE_EXCEPTION, $db->getAttribute(\PDO::ATTR_ERRMODE));
+
+			try {
+				$db->execStored('sq_test_4');
+				$db->execStored('sq_test_4');
+
+				self::fail();
+			} catch (\PDOException $ex) {
+				self::assertEquals('SQLSTATE[HY000]: General error: 1 table User already exists', $ex->getMessage());
+				self::assertEquals('HY000', $db->errorCode());
+				self::assertEquals('["HY000",1,"table User already exists"]', json_encode($db->errorInfo()));
+				self::assertCount(1, $db->getErrors(), $ex->getMessage());
+				self::assertCount(1, $db->getQueries());
 				self::assertEquals(1, $db->getQueryCount());
 			}
 
@@ -172,7 +207,44 @@
 				self::assertEquals("'Testing''s'", $db->quote("Testing's"));
 				self::assertEquals("'Testing''s'", $db->quote("Testing's", \PDO::PARAM_STR));
 			} catch (\PDOException $ex) {
-				self::assertFalse(true);
+				self::fail();
+			}
+
+			try {
+				$stmt = $db->prepare('INSERT INTO User (ID, Username, Email) VALUES (:id, :username, :email)');
+				$stmt->bindValue(':id', 1, \PDO::PARAM_INT);
+				$stmt->bindValue(':username', 'AndyM84', \PDO::PARAM_INT);
+				$stmt->bindValue(':email', 'andrew.male@grokspark.com', \PDO::PARAM_STR);
+				$stmt->execute();
+			} catch (\PDOException $ex) {
+				self::assertEquals('SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: User.ID', $ex->getMessage());
+			}
+
+			$db = new PdoHelper('', null, null, null, new \PDO('sqlite::memory:'));
+			$db->setAttributes();
+			$db->setAttributes([\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
+
+			try {
+				$db->execStored('sq_test_4');
+				self::assertEquals(0, $db->execStored('sq_test_-1'));
+
+				$stmt = $db->prepareStored('sq_test_2', [':username' => 'AndyM84', ':email' => 'andrew.male@grokspark.com']);
+				$stmt->execute();
+
+				self::assertEquals('1', $db->lastInsertId());
+				self::assertNull($db->prepareStored('sq_test_2', [':username' => 'AndyM84']));
+				self::assertNull($db->prepareStored('sq_test_2', [':username' => 'AndyM84', ':emailAddress' => 'andrew.male@grokspark.com']));
+
+				foreach ($db->queryStored('sq_test_5') as $row) {
+					self::assertEquals('AndyM84', $row['Username']);
+				}
+
+				self::assertNull($db->queryStored('sq_test_-1'));
+
+				self::assertEquals("'Testing''s'", $db->quote("Testing's"));
+				self::assertEquals("'Testing''s'", $db->quote("Testing's", \PDO::PARAM_STR));
+			} catch (\PDOException $ex) {
+				self::fail();
 			}
 
 			try {
