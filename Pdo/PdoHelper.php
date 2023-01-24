@@ -616,13 +616,13 @@
 		 * @param null|string $seqname Name of the sequence object from which the ID should be returned.
 		 * @return mixed
 		 */
-		public function lastInsertId(?string $seqname = null) : mixed {
-			return $this->tryActiveCommand(function () use ($seqname) {
+		public function lastInsertId(?string $name = null) : string|false {
+			return $this->tryActiveCommand(function () use ($name) {
 				if ($this->instance !== null) {
-					return $this->instance->lastInsertId($seqname);
+					return $this->instance->lastInsertId($name);
 				}
 
-				return parent::lastInsertId($seqname);
+				return parent::lastInsertId($name);
 			}, '');
 		}
 

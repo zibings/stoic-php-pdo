@@ -1,7 +1,7 @@
 {
 	"name": "stoic/pdo",
 	"description": "PDO helper components for the Stoic framework",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"homepage": "https://stoic-framework.com",
 	"autoload": {
 		"classmap": ["Pdo/"],
@@ -9,15 +9,21 @@
 			"./Tests/"
 		]
 	},
+	"repositories": [
+		{
+			"url": "https://github.com/AndyM84/pseudo.git",
+			"type": "git"
+		}
+	],
 	"require": {
-		"php": ">=8.0",
-		"stoic/stoic": "^1.0",
-		"stoic/io": "^1.0",
+		"php": ">=8.1",
+		"stoic/stoic": "^1",
+		"stoic/io": "^1",
 		"ext-pdo": "*",
 		"ext-json": "*"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "^9",
-		"jimbojsb/pseudo": "^0.4"
+		"jimbojsb/pseudo": "master-dev"
 	}
 }

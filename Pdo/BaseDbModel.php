@@ -366,7 +366,7 @@
 				} else if ($field->type->is(BaseDbTypes::STRING) && !($this->{$name} instanceof EnumBase)) {
 					$this->{$name} = new StringHelper($value);
 				} else if ($field->type->is(BaseDbTypes::DATETIME) && !($value instanceof \DateTimeInterface)) {
-					$this->{$name} = new \DateTimeImmutable($value);
+					$this->{$name} = new \DateTimeImmutable($value ?? 'now');
 				} else if ($this->{$name} instanceof EnumBase && !($value instanceof EnumBase)) {
 					$enumClass = get_class($this->{$name});
 					$this->{$name} = new $enumClass($value);
