@@ -1,7 +1,7 @@
 {
 	"name": "stoic/pdo",
 	"description": "PDO helper components for the Stoic framework",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"homepage": "https://stoic-framework.com",
 	"autoload": {
 		"classmap": ["Pdo/"],
@@ -16,7 +16,7 @@
 		}
 	],
 	"require": {
-		"php": ">=8.1",
+		"php": ">=8.2",
 		"stoic/stoic": "^1",
 		"stoic/io": "^1",
 		"ext-pdo": "*",

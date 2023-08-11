@@ -404,7 +404,7 @@
 				}
 				// @codeCoverageIgnoreEnd
 
-				call_user_func_array(['parent', '__construct'], $args);
+				call_user_func_array([parent::class, '__construct'], $args);
 
 				$this->dsn = $dsn;
 				$this->options = $options ?? [];
