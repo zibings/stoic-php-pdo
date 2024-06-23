@@ -262,7 +262,7 @@
 		 */
 		protected static function persistClassProperties() : void {
 			if (array_key_exists('BaseDbModel', static::$properties) === false) {
-				static::$properties['BaseDbModel'] = get_class_vars(get_class());
+				static::$properties['BaseDbModel'] = get_class_vars(self::class);
 			}
 
 			$className = get_called_class();
