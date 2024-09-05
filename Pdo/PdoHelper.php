@@ -278,6 +278,7 @@
 		 * @var array
 		 */
 		protected static array $driverLookup = [
+			''         => [PdoDrivers::PDO_UNKNOWN,  'unknown'],
 			'4D'       => [PdoDrivers::PDO_4D,       '4d'],
 			'cubrid'   => [PdoDrivers::PDO_CUBRID,   'cubrid'],
 			'firebird' => [PdoDrivers::PDO_FIREBIRD, 'firebird'],

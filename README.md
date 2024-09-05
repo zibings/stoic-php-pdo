@@ -1,4 +1,4 @@
-# stoic-php-io
+# stoic-php-pdo
 PDO component of the PHP Stoic Framework.  For more information, visit our website at [stoic-framework.com](https://stoic-framework.com)
 
 # Installation
