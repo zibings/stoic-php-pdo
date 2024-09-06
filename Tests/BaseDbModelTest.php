@@ -3,16 +3,18 @@
 	namespace Stoic\Tests\Utilities;
 
 	use PHPUnit\Framework\TestCase;
-	use Stoic\Pdo\BaseDbModel;
+	use Pseudo\Pdo;
+	use Pseudo\Result;
+
+	use Stoic\Log\Logger;
+	use Stoic\Pdo\BaseDbColumnFlags;
 	use Stoic\Pdo\BaseDbField;
+	use Stoic\Pdo\BaseDbModel;
 	use Stoic\Pdo\BaseDbTypes;
 	use Stoic\Pdo\BaseDbQueryTypes;
 	use Stoic\Pdo\ClassPropertyNotFoundException;
 	use Stoic\Utilities\EnumBase;
 	use Stoic\Utilities\ReturnHelper;
-	use Pseudo\Pdo;
-	use Pseudo\Result;
-	use Stoic\Log\Logger;
 
 	class TestEnum extends EnumBase {
 		const VALUE_ONE = 1;
@@ -90,6 +92,7 @@
 	class Role extends BaseDbModel {
 		public $id;
 		public $name;
+		public $description;
 
 
 		public static function fromId($id, \PDO $db, Logger $log = null) : Role {
@@ -178,6 +181,7 @@
 			$this->setTableName('Role');
 			$this->setColumn('id', 'ID', BaseDbTypes::INTEGER, true, false, false, false, true);
 			$this->setColumn('name', 'Name', BaseDbTypes::STRING, false, true, true);
+			$this->setColumn('description', 'Description', BaseDbTypes::STRING, BaseDbColumnFlags::SHOULD_INSERT | BaseDbColumnFlags::SHOULD_UPDATE);
 
 			$this->id = 0;
 			$this->name = null;
@@ -223,7 +227,7 @@
 		public function test_Instantiation() {
 		  $pdo = new Pdo();
 		  $role = new Role($pdo);
-		  $pdo->mock("SELECT ID, Name FROM Role WHERE ID = :id", new Result(), array(':id' => 1));
+		  $pdo->mock("SELECT ID, Name, Description FROM Role WHERE ID = :id", new Result(), array(':id' => 1));
 		  $pdo->mock("SELECT COUNT(*) FROM Role WHERE Name = :name", array(array('COUNT(*)' => 1)), array(':name' => 'Testing'));
 
 		  self::assertTrue($role->read()->isBad());
@@ -238,14 +242,14 @@
 
 		  $insertResult = new Result();
 		  $insertResult->setInsertId(1);
-		  $readResult = new Result(array(array('ID' => 1, 'Name' => 'Testing')), array(':id' => 1));
+		  $readResult = new Result(array(array('ID' => 1, 'Name' => 'Testing', 'Description' => 'Testing')), array(':id' => 1));
 		  $readResult->setAffectedRowCount(1);
 
-		  $pdo->mock("INSERT INTO Role (Name) VALUES (:name)", $insertResult, array(':name' => 'Testing'));
-		  $pdo->mock("UPDATE Role SET Name = :name WHERE ID = :id", new Result(), array(':name' => 'Testarino', ':id' => 1));
+		  $pdo->mock("INSERT INTO Role (Name, Description) VALUES (:name, :description)", $insertResult, array(':name' => 'Testing', ':description' => 'Testing'));
+		  $pdo->mock("UPDATE Role SET Name = :name, Description = :description WHERE ID = :id", new Result(), array(':name' => 'Testarino', ':description' => 'Testarino', ':id' => 1));
 		  $pdo->mock("SELECT COUNT(*) FROM Role WHERE Name = :name", array(array('COUNT(*)' => 0)), array(':name' => 'Testing'));
 		  $pdo->mock("SELECT COUNT(*) FROM Role WHERE Name = :name AND ID <> :id", array(array('COUNT(*)' => 0)), array(':name' => 'Testarino', ':id' => 1));
-		  $pdo->mock("SELECT ID, Name FROM Role WHERE ID = :id", $readResult, array(':id' => 1));
+		  $pdo->mock("SELECT ID, Name, Description FROM Role WHERE ID = :id", $readResult, array(':id' => 1));
 		  $pdo->mock("DELETE FROM Role WHERE ID = :id", new Result(), array(':id' => 1));
 
 		  $role = new Role($pdo);
@@ -285,7 +289,7 @@
 			}
 
 			try {
-				Role::fromArray(['id' => 1, 'roleName' => 'Testing'], new Pdo());
+				Role::fromArray(['id' => 1, 'roleName' => 'Testing', 'description' => 'Testing'], new Pdo());
 				self::fail();
 			} catch (ClassPropertyNotFoundException $ex) {
 				self::assertEquals("Couldn't find match for roleName index while populating Stoic\Tests\Utilities\Role", $ex->getMessage());
@@ -448,7 +452,7 @@
 			self::assertEquals('Name', $dbColumns['name']->column->data());
 
 			self::assertEquals('Role', $role->getDbTableName());
-			self::assertEquals('{"id":0,"name":null}', json_encode($role));
+			self::assertEquals('{"id":0,"name":null,"description":null}', json_encode($role));
 
 			$cdbc = new CompleteDbClass(new Pdo());
 			$cdbc->date = new \DateTime('2000-12-31 11:59:59');
@@ -460,12 +464,12 @@
 		public function test_BaseDbModel_QueryGen() {
 			$role = new Role(new Pdo());
 
-			self::assertEquals('INSERT INTO Role (Name) VALUES (:name)', $role->generateClassQuery(BaseDbQueryTypes::INSERT));
-			self::assertEquals('INSERT INTO Role (Name) VALUES (:name)', $role->generateClassQuery(BaseDbQueryTypes::INSERT, false));
-			self::assertEquals('SELECT ID, Name FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::SELECT));
-			self::assertEquals('SELECT ID, Name FROM Role', $role->generateClassQuery(BaseDbQueryTypes::SELECT, false));
-			self::assertEquals('UPDATE Role SET Name = :name WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE));
-			self::assertEquals('UPDATE Role SET Name = :name', $role->generateClassQuery(BaseDbQueryTypes::UPDATE, false));
+			self::assertEquals('INSERT INTO Role (Name, Description) VALUES (:name, :description)', $role->generateClassQuery(BaseDbQueryTypes::INSERT));
+			self::assertEquals('INSERT INTO Role (Name, Description) VALUES (:name, :description)', $role->generateClassQuery(BaseDbQueryTypes::INSERT, false));
+			self::assertEquals('SELECT ID, Name, Description FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::SELECT));
+			self::assertEquals('SELECT ID, Name, Description FROM Role', $role->generateClassQuery(BaseDbQueryTypes::SELECT, false));
+			self::assertEquals('UPDATE Role SET Name = :name, Description = :description WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::UPDATE));
+			self::assertEquals('UPDATE Role SET Name = :name, Description = :description', $role->generateClassQuery(BaseDbQueryTypes::UPDATE, false));
 			self::assertEquals('DELETE FROM Role WHERE ID = :id', $role->generateClassQuery(BaseDbQueryTypes::DELETE));
 			self::assertEquals('DELETE FROM Role', $role->generateClassQuery(BaseDbQueryTypes::DELETE, false));
 

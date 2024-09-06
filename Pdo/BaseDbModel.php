@@ -72,6 +72,20 @@
 	}
 
 	/**
+	 * Represents the different flags that can be set on a BaseDbColumn object.
+	 *
+	 * @package Stoic\Pdo
+	 * @version 1.4.0
+	 */
+	class BaseDbColumnFlags extends EnumBase {
+		const IS_KEY         = 1;
+		const SHOULD_INSERT  = 2;
+		const SHOULD_UPDATE  = 4;
+		const ALLOWS_NULLS   = 8;
+		const AUTO_INCREMENT = 16;
+	}
+
+	/**
 	 * Represents a single database field in a BaseDbModel.
 	 *
 	 * @package Stoic\Pdo
@@ -134,12 +148,12 @@
 		 * @param boolean $autoIncrement Whether this receives an AUTO_INCREMENT value after insertion.
 		 */
 		public function __construct(string $column, int $type, bool $isKey, bool $shouldInsert, bool $shouldUpdate, bool $allowsNulls = false, bool $autoIncrement = false) {
-			$this->allowsNulls = $allowsNulls;
-			$this->column = new StringHelper($column);
-			$this->type = new BaseDbTypes($type);
-			$this->isKey = $isKey;
-			$this->shouldInsert = $shouldInsert;
-			$this->shouldUpdate = $shouldUpdate;
+			$this->allowsNulls   = $allowsNulls;
+			$this->column        = new StringHelper($column);
+			$this->type          = new BaseDbTypes($type);
+			$this->isKey         = $isKey;
+			$this->shouldInsert  = $shouldInsert;
+			$this->shouldUpdate  = $shouldUpdate;
 			$this->autoIncrement = $autoIncrement;
 
 			if ($this->column->isEmptyOrNullOrWhitespace()) {
@@ -884,7 +898,7 @@
 		 * @param string $property Name of the class property this field corresponds to.
 		 * @param string $column Name of the database column.
 		 * @param int $type Type of the database column.
-		 * @param bool $isKey Whether this is part of the table key.
+		 * @param int|bool $isKeyOrFlags Flag composite for entire column flags or boolean value determining whether this is part of the table key.
 		 * @param bool $shouldInsert Whether this should be used during row creation.
 		 * @param bool $shouldUpdate Whether this should be used during row updates.
 		 * @param bool $allowsNulls Whether this should be allowed to be null.
@@ -892,12 +906,21 @@
 		 * @throws \InvalidArgumentException
 		 * @return void
 		 */
-		protected function setColumn(string $property, string $column, int $type, bool $isKey, bool $shouldInsert, bool $shouldUpdate, bool $allowsNulls = false, bool $autoIncrement = false) : void {
+		protected function setColumn(string $property, string $column, int $type, int|bool $isKeyOrFlags, bool $shouldInsert = false, bool $shouldUpdate = false, bool $allowsNulls = false, bool $autoIncrement = false) : void {
 			if (array_key_exists($property, $this->dbFields) !== false) {
 				throw new \InvalidArgumentException("Cannot overwrite a field that has already been set");
 			}
 
-			$this->dbFields[$property] = new BaseDbField($column, $type, $isKey, $shouldInsert, $shouldUpdate, $allowsNulls, $autoIncrement);
+			if (is_int($isKeyOrFlags)) {
+				$tmp           = $isKeyOrFlags;
+				$isKeyOrFlags  = $tmp & BaseDbColumnFlags::IS_KEY;
+				$shouldInsert  = $tmp & BaseDbColumnFlags::SHOULD_INSERT;
+				$shouldUpdate  = $tmp & BaseDbColumnFlags::SHOULD_UPDATE;
+				$allowsNulls   = $tmp & BaseDbColumnFlags::ALLOWS_NULLS;
+				$autoIncrement = $tmp & BaseDbColumnFlags::AUTO_INCREMENT;
+			}
+
+			$this->dbFields[$property] = new BaseDbField($column, $type, $isKeyOrFlags, $shouldInsert, $shouldUpdate, $allowsNulls, $autoIncrement);
 
 			return;
 		}
