@@ -658,16 +658,19 @@
 						$ret = '[';
 
 						break;
+					case PdoDrivers::PDO_IBM:
+					case PdoDrivers::PDO_ORACLE:
+					case PdoDrivers::PDO_PGSQL:
+					case PdoDrivers::PDO_SQLITE:
+						$ret = '"';
+
+						break;
 					case PdoDrivers::PDO_4D:
 					case PdoDrivers::PDO_CUBRID:
 					case PdoDrivers::PDO_FIREBIRD:
 					case PdoDrivers::PDO_FREETDS:
-					case PdoDrivers::PDO_IBM:
 					case PdoDrivers::PDO_INFORMIX:
 					case PdoDrivers::PDO_ODBC:
-					case PdoDrivers::PDO_ORACLE:
-					case PdoDrivers::PDO_PGSQL:
-					case PdoDrivers::PDO_SQLITE:
 					case PdoDrivers::PDO_UNKNOWN:
 					default:
 						break;
@@ -707,16 +710,19 @@
 						$ret = ']';
 
 						break;
+					case PdoDrivers::PDO_IBM:
+					case PdoDrivers::PDO_ORACLE:
+					case PdoDrivers::PDO_PGSQL:
+					case PdoDrivers::PDO_SQLITE:
+						$ret = '"';
+
+						break;
 					case PdoDrivers::PDO_4D:
 					case PdoDrivers::PDO_CUBRID:
 					case PdoDrivers::PDO_FIREBIRD:
 					case PdoDrivers::PDO_FREETDS:
-					case PdoDrivers::PDO_IBM:
 					case PdoDrivers::PDO_INFORMIX:
 					case PdoDrivers::PDO_ODBC:
-					case PdoDrivers::PDO_ORACLE:
-					case PdoDrivers::PDO_PGSQL:
-					case PdoDrivers::PDO_SQLITE:
 					case PdoDrivers::PDO_UNKNOWN:
 					default:
 						break;
