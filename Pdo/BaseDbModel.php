@@ -878,11 +878,15 @@
 				if ($cmp) {
 					$row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-					foreach ($this->dbFields as $property => $field) {
-						$this->setPropertyDbValue($property, $field, $row[$field->column->data()]);
-					}
+					if ($row === false) {
+						$ret->addMessage("No results returned for generated 'read' query, read aborted");
+					} else {
+						foreach ($this->dbFields as $property => $field) {
+							$this->setPropertyDbValue($property, $field, $row[$field->column->data()]);
+						}
 
-					$ret->makeGood();
+						$ret->makeGood();
+					}
 				} else {
 					$ret->addMessage("No results found for generated 'read' query, read aborted");
 				}
