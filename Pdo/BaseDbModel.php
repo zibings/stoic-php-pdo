@@ -439,7 +439,7 @@
 			}
 
 			try {
-				$sql = "INSERT INTO {$this->dbTable} (" . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ',' . $this->getDbColumnPrefix(), array_keys($insertColumns)) . $this->getDbColumnSuffix() . ") VALUES (" . implode(', ', array_values($insertColumns)) . ")";
+				$sql = "INSERT INTO {$this->getDbTableName()} (" . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ',' . $this->getDbColumnPrefix(), array_keys($insertColumns)) . $this->getDbColumnSuffix() . ") VALUES (" . implode(', ', array_values($insertColumns)) . ")";
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
@@ -459,7 +459,7 @@
 
 				$ret->makeGood();
 				$this->log->info("Successfully created " . $this->className);
-			// @codeCoverageIgnoreStart
+				// @codeCoverageIgnoreStart
 			} catch (\PDOException $ex) {
 				$this->log->error("Failed to create " . $this->className . ": {ERROR}", array('ERROR' => $ex));
 				$ret->addMessage("Failed to create {$this->className}:  {$ex->getMessage()}");
@@ -544,7 +544,7 @@
 			}
 
 			try {
-				$sql = "DELETE FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
+				$sql = "DELETE FROM {$this->getDbTableName()} WHERE " . implode(' AND ', array_values($primaryStrings));
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
@@ -558,7 +558,7 @@
 				$stmt->execute();
 				$ret->makeGood();
 				$this->log->info("Successfully deleted {$this->className}");
-			// @codeCoverageIgnoreStart
+				// @codeCoverageIgnoreStart
 			} catch (\PDOException $ex) {
 				$this->log->error("Failed to delete {$this->className} with error: {ERROR}", array('ERROR' => $ex));
 				$ret->addMessage("Failed to delete {$this->className}: {$ex->getMessage()}");
@@ -604,19 +604,19 @@
 
 			switch ($queryType->getValue()) {
 				case BaseDbQueryTypes::DELETE:
-					$ret = "DELETE FROM {$this->dbTable}";
+					$ret = "DELETE FROM {$this->getDbTableName()}";
 
 					break;
 				case BaseDbQueryTypes::INSERT:
-					$ret = "INSERT INTO {$this->dbTable} (" . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_keys($insertColumns)) . $this->getDbColumnSuffix() . ") VALUES (" . implode(', ', array_values($insertColumns)) . ")";
+					$ret = "INSERT INTO {$this->getDbTableName()} (" . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_keys($insertColumns)) . $this->getDbColumnSuffix() . ") VALUES (" . implode(', ', array_values($insertColumns)) . ")";
 
 					break;
 				case BaseDbQueryTypes::SELECT:
-					$ret = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($selectColumns)) . $this->getDbColumnSuffix() . " FROM {$this->dbTable}";
+					$ret = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($selectColumns)) . $this->getDbColumnSuffix() . " FROM {$this->getDbTableName()}";
 
 					break;
 				case BaseDbQueryTypes::UPDATE:
-					$ret = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumns));
+					$ret = "UPDATE {$this->getDbTableName()} SET " . implode(', ', array_values($updateColumns));
 
 					break;
 			}
@@ -738,7 +738,9 @@
 		 * @return string
 		 */
 		public function getDbTableName() : string {
-			return $this->dbTable->data() ?? '';
+			$tableName = $this->dbTable->data() ?? '';
+
+			return $this->getDbColumnPrefix() . $tableName . $this->getDbColumnSuffix();
 		}
 
 		/**
@@ -858,7 +860,7 @@
 			}
 
 			try {
-				$sql = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($columns)) . $this->getDbColumnSuffix() . " FROM {$this->dbTable} WHERE " . implode(' AND ', array_values($primaryStrings));
+				$sql = "SELECT " . $this->getDbColumnPrefix() . implode($this->getDbColumnSuffix() . ', ' . $this->getDbColumnPrefix(), array_values($columns)) . $this->getDbColumnSuffix() . " FROM {$this->getDbTableName()} WHERE " . implode(' AND ', array_values($primaryStrings));
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
@@ -890,7 +892,7 @@
 				} else {
 					$ret->addMessage("No results found for generated 'read' query, read aborted");
 				}
-			// @codeCoverageIgnoreStart
+				// @codeCoverageIgnoreStart
 			} catch (\PDOException $ex) {
 				$this->log->error("Failed to read {$this->className} object with error: {ERROR}", array('ERROR' => $ex));
 				$ret->addMessage("Failed to read {$this->className}: {$ex->getMessage()}");
@@ -1056,7 +1058,7 @@
 			}
 
 			try {
-				$sql = "UPDATE {$this->dbTable} SET " . implode(', ', array_values($updateColumnStrings)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
+				$sql = "UPDATE {$this->getDbTableName()} SET " . implode(', ', array_values($updateColumnStrings)) . " WHERE " .implode(' AND ', array_values($primaryStrings));
 				$stmt = $this->db->prepare($sql);
 				$paramOutput = [];
 
@@ -1075,7 +1077,7 @@
 				$stmt->execute();
 				$ret->makeGood();
 				$this->log->info("Successfully updated {$this->className}");
-			// @codeCoverageIgnoreStart
+				// @codeCoverageIgnoreStart
 			} catch (\PDOException $ex) {
 				$this->log->error("Failed to update {$this->className} with error: {ERROR}", array('ERROR' => $ex));
 				$ret->addMessage("Failed to update {$this->className} with error: {$ex->getMessage()}");
