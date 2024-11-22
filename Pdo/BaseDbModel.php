@@ -46,7 +46,7 @@
 				case self::DATETIME:
 					return \PDO::PARAM_STR;
 				case self::BOOLEAN:
-					return \PDO::PARAM_BOOL;
+					return \PDO::PARAM_INT;
 				case self::NILL:
 					return \PDO::PARAM_NULL;
 			}
