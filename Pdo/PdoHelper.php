@@ -11,21 +11,21 @@
 	 * @version 1.1.0
 	 */
 	class PdoDrivers extends EnumBase {
-		const PDO_UNKNOWN  = 0;
-		const PDO_4D       = 1;
-		const PDO_CUBRID   = 2;
-		const PDO_FIREBIRD = 3;
-		const PDO_FREETDS  = 4;
-		const PDO_IBM      = 5;
-		const PDO_INFORMIX = 6;
-		const PDO_MSSQL    = 7;
-		const PDO_MYSQL    = 8;
-		const PDO_ODBC     = 9;
-		const PDO_ORACLE   = 10;
-		const PDO_PGSQL    = 11;
-		const PDO_SQLITE   = 12;
-		const PDO_SQLSRV   = 13;
-		const PDO_SYBASE   = 14;
+		const int PDO_UNKNOWN  = 0;
+		const int PDO_4D       = 1;
+		const int PDO_CUBRID   = 2;
+		const int PDO_FIREBIRD = 3;
+		const int PDO_FREETDS  = 4;
+		const int PDO_IBM      = 5;
+		const int PDO_INFORMIX = 6;
+		const int PDO_MSSQL    = 7;
+		const int PDO_MYSQL    = 8;
+		const int PDO_ODBC     = 9;
+		const int PDO_ORACLE   = 10;
+		const int PDO_PGSQL    = 11;
+		const int PDO_SQLITE   = 12;
+		const int PDO_SQLSRV   = 13;
+		const int PDO_SYBASE   = 14;
 	}
 
 	/**
@@ -97,7 +97,7 @@
 		 * @param string $query Query string being recorded.
 		 * @param null|array $arguments Optional array of arguments to use with query.
 		 */
-		public function __construct(string $key, string $query, array $arguments = null) {
+		public function __construct(string $key, string $query, null|array $arguments = null) {
 			$this->key = $key;
 			$this->query = $query;
 
@@ -138,7 +138,7 @@
 		 * @param string $query The query string that is being recorded.
 		 * @param null|array $arguments Optional array of arguments used with query in format ['name', 'value', 'type'].
 		 */
-		public function __construct(string $query, ?array $arguments = null) {
+		public function __construct(string $query, null|array $arguments = null) {
 			$this->query = $query;
 
 			if ($arguments !== null) {
@@ -375,8 +375,9 @@
 		 * @param null|string $password Password for the DSN string, optional depending on PDO driver.
 		 * @param null|array $options A key=>value array of driver-specific connection options.
 		 * @param null|\PDO $instance Optional PDO instance to wrap around instead of initializing internally.
+		 * @throws \ReflectionException
 		 */
-		public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null, ?\PDO $instance = null) {
+		public function __construct(string $dsn, null|string $username = null, null|string $password = null, null|array $options = null, null|\PDO $instance = null) {
 			if ($instance !== null) {
 				$this->instance = $instance;
 

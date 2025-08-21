@@ -22,11 +22,11 @@
 	 * @version 1.1.0
 	 */
 	class BaseDbTypes extends EnumBase {
-		const INTEGER = 0;
-		const STRING = 1;
-		const BOOLEAN = 2;
-		const NILL = 3;
-		const DATETIME = 4;
+		const int INTEGER  = 0;
+		const int STRING   = 1;
+		const int BOOLEAN  = 2;
+		const int NILL     = 3;
+		const int DATETIME = 4;
 
 
 		/**
@@ -46,7 +46,7 @@
 				case self::DATETIME:
 					return \PDO::PARAM_STR;
 				case self::BOOLEAN:
-					return \PDO::PARAM_INT;
+					return \PDO::PARAM_BOOL;
 				case self::NILL:
 					return \PDO::PARAM_NULL;
 			}
@@ -64,11 +64,11 @@
 	 * @version 1.1.0
 	 */
 	class BaseDbQueryTypes extends EnumBase {
-		const INVALID = 0;
-		const DELETE = 1;
-		const INSERT = 2;
-		const SELECT = 3;
-		const UPDATE = 4;
+		const int INVALID = 0;
+		const int DELETE  = 1;
+		const int INSERT  = 2;
+		const int SELECT  = 3;
+		const int UPDATE  = 4;
 	}
 
 	/**
@@ -78,11 +78,11 @@
 	 * @version 1.4.0
 	 */
 	class BaseDbColumnFlags extends EnumBase {
-		const IS_KEY         = 1;
-		const SHOULD_INSERT  = 2;
-		const SHOULD_UPDATE  = 4;
-		const ALLOWS_NULLS   = 8;
-		const AUTO_INCREMENT = 16;
+		const int IS_KEY         = 1;
+		const int SHOULD_INSERT  = 2;
+		const int SHOULD_UPDATE  = 4;
+		const int ALLOWS_NULLS   = 8;
+		const int AUTO_INCREMENT = 16;
 	}
 
 	/**
@@ -146,6 +146,7 @@
 		 * @param boolean $shouldUpdate Whether this should be used during row updates.
 		 * @param boolean $allowsNulls Whether this should be allowed to be null.
 		 * @param boolean $autoIncrement Whether this receives an AUTO_INCREMENT value after insertion.
+		 * @throws \ReflectionException
 		 */
 		public function __construct(string $column, int $type, bool $isKey, bool $shouldInsert, bool $shouldUpdate, bool $allowsNulls = false, bool $autoIncrement = false) {
 			$this->allowsNulls   = $allowsNulls;

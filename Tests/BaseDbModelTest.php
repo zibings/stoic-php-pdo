@@ -95,7 +95,7 @@
 		public $description;
 
 
-		public static function fromId($id, \PDO $db, Logger $log = null) : Role {
+		public static function fromId($id, \PDO $db, null|Logger $log = null) : Role {
 			$ret = new Role($db, $log);
 			$ret->id = intval($id);
 			
